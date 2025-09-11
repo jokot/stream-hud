@@ -1,0 +1,22 @@
+{
+  "name": "stream-hud",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stream HUD - Browser overlay for OBS with checklist and progress tracking",
+  "scripts": {
+    "dev:overlay": "pnpm --filter checklist-overlay dev",
+    "dev:ws": "pnpm --filter checklist-ws dev",
+    "dev": "concurrently \"pnpm dev:ws\" \"pnpm dev:overlay\"",
+    "build:overlay": "pnpm --filter checklist-overlay build",
+    "build:ws": "pnpm --filter checklist-ws build",
+    "build": "pnpm build:overlay && pnpm build:ws"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "items": [
+    { "id": "1", "text": "Scaffold overlay", "done": true },
+    { "id": "2", "text": "Render checklist items", "done": true },
+    { "id": "3", "text": "Progress % + counter", "done": true },
+    { "id": "4", "text": "Poll tasks.json fallback", "done": true },
+    { "id": "5", "text": "OBS Browser Source test", "done": false }
+  ],
+  "ts": 1736567000
+}
