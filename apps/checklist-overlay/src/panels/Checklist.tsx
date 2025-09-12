@@ -18,10 +18,14 @@ export function Checklist({ config }: ChecklistProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [source, setSource] = useState<'ws' | 'poll'>('poll');
   const [dataSource, setDataSource] = useState<ChecklistDataSource | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const handleData = useCallback((payload: ChecklistPayload) => {
+    console.log('handleData called with:', payload.items.length, 'items, source:', payload.source);
     setItems(payload.items);
     setLastUpdate(payload.ts);
+    setSelectedTaskId(payload.selectedTaskId || null);
+    console.log('State updated - new items should be:', payload.items.length);
   }, []);
 
   const handleStatus = useCallback((connected: boolean, sourceType: 'ws' | 'poll') => {
@@ -37,7 +41,11 @@ export function Checklist({ config }: ChecklistProps) {
     return () => {
       ds.stop();
     };
-  }, [handleData, handleStatus]);
+  }, []); // Remove dependencies to prevent recreation
+
+  useEffect(() => {
+    console.log('Items state changed to:', items?.length || 0, 'items');
+  }, [items]);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -56,12 +64,12 @@ export function Checklist({ config }: ChecklistProps) {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [dataSource, items]);
 
-  const completedCount = items.filter(item => item.done).length;
-  const totalCount = items.length;
+  const completedCount = (items || []).filter(item => item.done).length;
+  const totalCount = (items || []).length;
   const progressPercent = calculateProgress(completedCount, totalCount);
 
   // Group items if they have groups
-  const groupedItems: GroupedItems = items.reduce((acc, item) => {
+  const groupedItems: GroupedItems = (items || []).reduce((acc, item) => {
     const group = item.group || 'default';
     if (!acc[group]) acc[group] = [];
     acc[group].push(item);
@@ -69,6 +77,8 @@ export function Checklist({ config }: ChecklistProps) {
   }, {} as GroupedItems);
 
   const hasGroups = Object.keys(groupedItems).length > 1 || (Object.keys(groupedItems).length === 1 && !groupedItems.default);
+  
+  console.log('Render - items:', items?.length || 0, 'hasGroups:', hasGroups, 'groupedItems:', Object.keys(groupedItems).map(k => `${k}:${groupedItems[k].length}`).join(', '));
 
   return (
     <div className="p-4 w-fit max-w-md">
@@ -129,17 +139,19 @@ export function Checklist({ config }: ChecklistProps) {
                       key={item.id}
                       item={item}
                       compact={config.compact}
+                      isSelected={item.id === selectedTaskId}
                     />
                   ))}
                 </div>
               ))
             ) : (
               // Render flat list
-              items.map((item) => (
+              (items || []).map((item) => (
                 <ChecklistItemComponent
                   key={item.id}
                   item={item}
                   compact={config.compact}
+                  isSelected={item.id === selectedTaskId}
                 />
               ))
             )}
@@ -160,9 +172,10 @@ export function Checklist({ config }: ChecklistProps) {
 interface ChecklistItemProps {
   item: ChecklistItem;
   compact: boolean;
+  isSelected: boolean;
 }
 
-function ChecklistItemComponent({ item, compact }: ChecklistItemProps) {
+function ChecklistItemComponent({ item, compact, isSelected }: ChecklistItemProps) {
   return (
     <motion.div
       layout
@@ -170,7 +183,11 @@ function ChecklistItemComponent({ item, compact }: ChecklistItemProps) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 10 }}
       transition={{ duration: 0.2 }}
-      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors`}
+      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md transition-colors ${
+        isSelected 
+          ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-md' 
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2 border-transparent'
+      }`}
     >
       <div className="flex-shrink-0">
         <motion.div

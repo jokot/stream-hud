@@ -1,10 +1,61 @@
 {
   "items": [
-    { "id": "1", "text": "Scaffold overlay", "done": true },
-    { "id": "2", "text": "Render checklist items", "done": true },
-    { "id": "3", "text": "Progress % + counter", "done": true },
-    { "id": "4", "text": "Poll tasks.json fallback", "done": true },
-    { "id": "5", "text": "OBS Browser Source test", "done": false }
+    {
+      "id": "task_1757687886901_m3fpiptua",
+      "text": "Fix reset shortcut",
+      "done": true,
+      "completed": true,
+      "order": 0
+    },
+    {
+      "id": "task_1757687900540_5jv3t40n2",
+      "text": "Add shortcut for delete task",
+      "done": true,
+      "completed": true,
+      "order": 1
+    },
+    {
+      "id": "task_1757687934257_5ffu7aubx",
+      "text": "remove unececary notification",
+      "done": true,
+      "completed": true,
+      "order": 2
+    },
+    {
+      "id": "task_1757687993473_fo4oow4bx",
+      "text": "fix navigaiton select item when we add new item",
+      "done": true,
+      "completed": true,
+      "order": 3
+    },
+    {
+      "id": "task_1757691708054_6lt6c7aux",
+      "text": "Add \"No task selected to delete\" Dialog",
+      "done": true,
+      "completed": true,
+      "order": 4
+    },
+    {
+      "id": "task_1757696141677_a003cjivg",
+      "text": "4",
+      "done": false,
+      "completed": false,
+      "order": 5
+    },
+    {
+      "id": "task_1757696192213_0txj8781p",
+      "text": "7",
+      "done": false,
+      "completed": false,
+      "order": 6
+    },
+    {
+      "id": "task_1757696258099_53do1wymo",
+      "text": "task 10",
+      "done": false,
+      "completed": false,
+      "order": 7
+    }
   ],
-  "ts": 1736567000
+  "ts": 1757696275
 }

@@ -51,7 +51,7 @@ http://localhost:5173/?scale=1.2&theme=dark&title=My%20Stream&showProgress=1&com
 |-----------|------|---------|-------------|
 | `scale` | number | `1.0` | Scale factor (0.5-2.0) for sizing |
 | `title` | string | `"Checklist"` | Title displayed at the top |
-| `theme` | string | `"light"` | Theme mode (`light` or `dark`) |
+| `theme` | string | `"dark"` | Theme mode (`light` or `dark`) |
 | `showProgress` | boolean | `1` | Show progress bar (1 or 0) |
 | `compact` | boolean | `0` | Compact layout mode (1 or 0) |
 

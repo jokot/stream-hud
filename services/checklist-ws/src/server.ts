@@ -1,8 +1,11 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { watch } from 'chokidar';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,12 +15,15 @@ interface ChecklistItem {
   id: string;
   text: string;
   done: boolean;
+  completed?: boolean; // Alias for done
   group?: string;
+  order?: number;
 }
 
 interface ChecklistData {
   items: ChecklistItem[];
   ts: number;
+  selectedTaskId?: string;
 }
 
 interface ChecklistPayload extends ChecklistData {
@@ -26,28 +32,206 @@ interface ChecklistPayload extends ChecklistData {
 
 class ChecklistWebSocketServer {
   private wss: WebSocketServer;
+  private app: express.Application;
+  private server: any;
   private tasksFilePath: string;
   private lastData: ChecklistData | null = null;
   private broadcastInterval: NodeJS.Timeout | null = null;
   private clients = new Set<WebSocket>();
+  private adminToken: string = 'devtoken';
+  private selectedTaskId: string | null = null;
 
   constructor(port = 7006) {
     // Path to tasks.json (relative to project root)
     this.tasksFilePath = resolve(__dirname, '../../../configs/tasks.json');
     
-    // Create WebSocket server
+    // Create Express app
+    this.app = express();
+    this.app.use(cors());
+    this.app.use(express.json());
+    
+    // Create HTTP server
+    this.server = createServer(this.app);
+    
+    // Create WebSocket server attached to HTTP server
     this.wss = new WebSocketServer({ 
-      port,
+      server: this.server,
       path: '/checklist'
     });
 
-    console.log(`🚀 Checklist WebSocket server running on ws://localhost:${port}/checklist`);
-    console.log(`📁 Watching: ${this.tasksFilePath}`);
-
+    // Setup routes and handlers
+    this.setupHttpRoutes();
     this.setupWebSocketHandlers();
     this.setupFileWatcher();
     this.loadInitialData();
-    this.startPeriodicBroadcast();
+    // Removed periodic broadcast to prevent overlay flickering
+    
+    // Start server
+    this.server.listen(port, () => {
+      console.log(`🚀 Checklist server running on http://localhost:${port}`);
+      console.log(`🚀 WebSocket server running on ws://localhost:${port}/checklist`);
+      console.log(`📁 Watching: ${this.tasksFilePath}`);
+    });
+  }
+
+  private setupHttpRoutes() {
+    // Authentication middleware for POST requests
+    const authenticateAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing or invalid authorization header' });
+      }
+      
+      const token = authHeader.substring(7);
+      if (token !== this.adminToken) {
+        return res.status(403).json({ error: 'Invalid admin token' });
+      }
+      
+      next();
+    };
+
+    // GET /tasks - Get all tasks
+    this.app.get('/tasks', (req, res) => {
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      // Convert done to completed for consistency
+      const tasks = this.lastData.items.map(item => ({
+        ...item,
+        completed: item.done || item.completed || false
+      }));
+      
+      res.json(tasks);
+    });
+
+    // POST /tasks/toggle-next - Toggle first incomplete task
+    this.app.post('/tasks/toggle-next', authenticateAdmin, (req, res) => {
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const firstIncomplete = this.lastData.items.find(item => !item.done && !item.completed);
+      if (!firstIncomplete) {
+        return res.status(404).json({ error: 'No incomplete tasks found' });
+      }
+      
+      this.toggleTaskById(firstIncomplete.id);
+      res.json({ success: true, toggledTask: firstIncomplete.id });
+    });
+
+    // POST /tasks/toggle - Toggle specific task by ID
+    this.app.post('/tasks/toggle', authenticateAdmin, (req, res) => {
+      const { id } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const task = this.lastData.items.find(item => item.id === id);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      this.toggleTaskById(id);
+      res.json({ success: true, toggledTask: id });
+    });
+
+    // POST /tasks/reset - Reset all tasks to incomplete
+    this.app.post('/tasks/reset', authenticateAdmin, (req, res) => {
+      const { confirm } = req.body;
+      if (!confirm) {
+        return res.status(400).json({ error: 'Confirmation required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      this.resetAllTasks();
+      res.json({ success: true, message: 'All tasks reset to incomplete' });
+    });
+
+    // POST /tasks/add - Add new task (optional endpoint)
+    this.app.post('/tasks/add', authenticateAdmin, (req, res) => {
+      const { text } = req.body;
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ error: 'Task text is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      this.addTask(text.trim());
+      res.json({ success: true, message: 'Task added successfully' });
+    });
+
+    // POST /tasks/delete - Delete task by ID
+    this.app.post('/tasks/delete', authenticateAdmin, (req, res) => {
+      const { id } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const taskIndex = this.lastData.items.findIndex(item => item.id === id);
+      if (taskIndex === -1) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      const deletedTask = this.lastData.items[taskIndex];
+      this.deleteTask(id);
+      res.json({ success: true, message: 'Task deleted successfully', deletedTask: deletedTask.text });
+    });
+
+    // POST /tasks/select - Update selected task
+    this.app.post('/tasks/select', authenticateAdmin, (req, res) => {
+      const { taskId } = req.body;
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      // Validate task exists if taskId is provided
+      if (taskId && !this.lastData.items.find(item => item.id === taskId)) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      this.selectedTaskId = taskId || null;
+      this.broadcastSelectionUpdate();
+      res.json({ success: true, selectedTaskId: this.selectedTaskId });
+    });
+
+    // GET /control - Simple control page (optional)
+    this.app.get('/control', (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Checklist Control</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .task { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+            .completed { background-color: #e8f5e8; }
+            button { margin: 5px; padding: 5px 10px; }
+          </style>
+        </head>
+        <body>
+          <h1>Checklist Control</h1>
+          <p>Use the HUD Controller app or API endpoints to manage tasks.</p>
+          <p>WebSocket: ws://localhost:7006/checklist</p>
+          <p>API Base: http://localhost:7006</p>
+        </body>
+        </html>
+      `);
+    });
   }
 
   private setupWebSocketHandlers() {
@@ -157,8 +341,10 @@ class ChecklistWebSocketServer {
 
     console.log(`📡 Broadcasting to ${this.clients.size} client(s)`);
     
-    const payload: ChecklistPayload = {
-      ...data,
+    const payload = {
+      type: 'tasks_updated',
+      tasks: data.items,
+      selectedTaskId: this.selectedTaskId || undefined,
       source: 'ws'
     };
 
@@ -182,17 +368,130 @@ class ChecklistWebSocketServer {
     clientsToRemove.forEach(ws => this.clients.delete(ws));
   }
 
-  private startPeriodicBroadcast() {
-    // Broadcast every 2 seconds to keep connections alive
-    this.broadcastInterval = setInterval(() => {
-      if (this.lastData && this.clients.size > 0) {
-        this.broadcastToAll(this.lastData);
+  private broadcastSelectionUpdate() {
+    if (!this.lastData) return;
+    
+    const payload: ChecklistPayload = {
+      ...this.lastData,
+      selectedTaskId: this.selectedTaskId || undefined,
+      source: 'ws'
+    };
+
+    const message = JSON.stringify(payload);
+    const clientsToRemove: WebSocket[] = [];
+
+    this.clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(message);
+        } catch (error) {
+          console.error('❌ Failed to broadcast selection update:', error);
+          clientsToRemove.push(ws);
+        }
+      } else {
+        clientsToRemove.push(ws);
       }
-    }, 2000);
+    });
+
+    // Clean up dead connections
+    clientsToRemove.forEach(ws => this.clients.delete(ws));
+  }
+
+  // Removed periodic broadcast to prevent overlay flickering
+  // WebSocket connections will stay alive without constant broadcasting
+
+  private toggleTaskById(taskId: string): boolean {
+    if (!this.lastData) return false;
+    
+    const task = this.lastData.items.find(item => item.id === taskId);
+    if (!task) return false;
+    
+    task.done = !task.done;
+    task.completed = task.done; // Keep both properties in sync
+    
+    this.saveTasksFile();
+    this.broadcastToAll(this.lastData);
+    
+    console.log(`✅ Toggled task "${task.text}" to ${task.done ? 'completed' : 'incomplete'}`);
+    return true;
+  }
+
+  private resetAllTasks(): boolean {
+    if (!this.lastData) return false;
+    
+    this.lastData.items.forEach(item => {
+      item.done = false;
+      item.completed = false;
+    });
+    
+    this.saveTasksFile();
+    this.broadcastToAll(this.lastData);
+    
+    console.log('✅ Reset all tasks to incomplete');
+    return true;
+  }
+
+  private addTask(text: string): boolean {
+    if (!this.lastData) return false;
+    
+    const newTask: ChecklistItem = {
+      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      text: text,
+      done: false,
+      completed: false,
+      order: this.lastData.items.length
+    };
+    
+    this.lastData.items.push(newTask);
+    
+    this.saveTasksFile();
+    this.broadcastToAll(this.lastData);
+    
+    console.log(`✅ Added new task: "${text}"`);
+    return true;
+  }
+
+  private deleteTask(taskId: string): boolean {
+    if (!this.lastData) return false;
+    
+    const taskIndex = this.lastData.items.findIndex(item => item.id === taskId);
+    if (taskIndex === -1) return false;
+    
+    const deletedTask = this.lastData.items[taskIndex];
+    this.lastData.items.splice(taskIndex, 1);
+    
+    // Update order for remaining tasks
+    this.lastData.items.forEach((item, index) => {
+      item.order = index;
+    });
+    
+    this.saveTasksFile();
+    this.broadcastToAll(this.lastData);
+    
+    console.log(`✅ Deleted task: "${deletedTask.text}"`);
+    return true;
+  }
+
+  private saveTasksFile(): boolean {
+    if (!this.lastData) return false;
+    
+    try {
+      // Update timestamp
+      this.lastData.ts = Math.floor(Date.now() / 1000);
+      
+      const jsonContent = JSON.stringify(this.lastData, null, 2);
+      writeFileSync(this.tasksFilePath, jsonContent, 'utf-8');
+      
+      console.log('💾 Saved tasks to file');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to save tasks file:', error);
+      return false;
+    }
   }
 
   public stop() {
-    console.log('🛑 Stopping WebSocket server...');
+    console.log('🛑 Stopping server...');
     
     if (this.broadcastInterval) {
       clearInterval(this.broadcastInterval);
@@ -204,8 +503,8 @@ class ChecklistWebSocketServer {
       }
     });
 
-    this.wss.close(() => {
-      console.log('✅ WebSocket server stopped');
+    this.server.close(() => {
+      console.log('✅ Server stopped');
     });
   }
 }

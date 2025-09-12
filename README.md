@@ -9,7 +9,8 @@ A browser overlay for OBS that displays a live progress checklist with WebSocket
 - 🎨 **Customizable UI**: URL parameters for theme, scale, and layout
 - ⚡ **Fast Setup**: No backend required for basic usage
 - 🎥 **OBS Ready**: Optimized for browser source integration
-- ⌨️ **Keyboard Shortcuts**: Quick controls for live streaming
+- ⌨️ **Global Shortcuts**: System tray controller with global keyboard shortcuts
+- 🖥️ **Cross-platform**: Works on Windows, macOS, and Linux
 
 ## Quick Start
 
@@ -29,12 +30,16 @@ pnpm install
 ### Development
 
 ```bash
-# Start both overlay and WebSocket server
+# Start overlay and WebSocket server
 pnpm dev
 
+# Start everything including tray controller
+pnpm dev:all
+
 # Or start individually:
-pnpm dev:overlay  # React app on http://localhost:5173
-pnpm dev:ws       # WebSocket server on ws://localhost:7006
+pnpm dev:overlay     # React app on http://localhost:5173
+pnpm dev:ws          # WebSocket server on ws://localhost:7006
+pnpm dev:controller  # Electron tray app with global shortcuts
 ```
 
 ### Production Build
@@ -56,6 +61,23 @@ pnpm build
 1. Start the WebSocket server: `pnpm dev:ws`
 2. Edit `configs/tasks.json` - changes will broadcast automatically
 3. Open `http://localhost:5173` - will connect via WebSocket
+
+### HUD Controller (Global Shortcuts)
+
+The HUD Controller is an Electron tray app that provides global keyboard shortcuts for controlling the checklist, even when other applications (like OBS or games) are in focus.
+
+1. **Start the controller**: `pnpm dev:controller`
+2. **Look for the tray icon** in your system tray
+3. **Use global shortcuts** to control tasks:
+   - `Alt+Shift+T` - Toggle next incomplete task
+   - `Alt+Shift+Space` - Toggle currently selected task
+   - `Alt+Shift+J/K` - Navigate selection up/down
+   - `Alt+Shift+R` - Reset all tasks
+   - `Alt+Shift+G` - Add new task
+
+4. **Right-click tray icon** for menu options and settings
+
+See `apps/hud-controller/README.md` for detailed setup and troubleshooting.
 
 ## Configuration
 

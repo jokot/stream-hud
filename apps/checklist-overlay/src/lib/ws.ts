@@ -9,6 +9,7 @@ export type ChecklistPayload = {
   items: ChecklistItem[];
   ts: number;
   source: 'ws' | 'poll';
+  selectedTaskId?: string;
 };
 
 export type DataCallback = (payload: ChecklistPayload) => void;
@@ -33,6 +34,7 @@ export class ChecklistDataSource {
     wsUrl = 'ws://localhost:7006/checklist',
     pollUrl = '/configs/tasks.json'
   ) {
+    console.log('ChecklistDataSource constructor called');
     this.onData = onData;
     this.onStatus = onStatus;
     this.wsUrl = wsUrl;
@@ -40,6 +42,9 @@ export class ChecklistDataSource {
   }
 
   start() {
+    // Clean up any existing connections first
+    this.cleanup();
+    
     // Try WebSocket first
     this.connectWebSocket();
     
@@ -62,6 +67,12 @@ export class ChecklistDataSource {
   }
 
   private connectWebSocket() {
+    // Clean up any existing connection first
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    
     try {
       this.ws = new WebSocket(this.wsUrl);
       
@@ -142,12 +153,14 @@ export class ChecklistDataSource {
 
   private async pollOnce() {
     try {
-      const response = await fetch(this.pollUrl);
+      console.log('Polling tasks.json...');
+      const response = await fetch(`${this.pollUrl}?t=${Date.now()}`);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('Polled data:', data.items?.length || 0, 'items, ts:', data.ts);
       const payload: ChecklistPayload = {
         items: data.items || [],
         ts: data.ts || Date.now() / 1000,
@@ -162,7 +175,10 @@ export class ChecklistDataSource {
 
   private cleanup() {
     if (this.ws) {
-      this.ws.close();
+      // Properly close WebSocket connection
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close(1000, 'Client cleanup');
+      }
       this.ws = null;
     }
     
@@ -177,5 +193,6 @@ export class ChecklistDataSource {
     }
     
     this.isConnected = false;
+    this.reconnectAttempts = 0;
   }
 }

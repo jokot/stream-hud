@@ -6,10 +6,13 @@
   "scripts": {
     "dev:overlay": "pnpm --filter checklist-overlay dev",
     "dev:ws": "pnpm --filter checklist-ws dev",
+    "dev:controller": "pnpm --filter hud-controller dev",
     "dev": "concurrently \"pnpm dev:ws\" \"pnpm dev:overlay\"",
+    "dev:all": "concurrently \"pnpm dev:ws\" \"pnpm dev:overlay\" \"pnpm dev:controller\"",
     "build:overlay": "pnpm --filter checklist-overlay build",
     "build:ws": "pnpm --filter checklist-ws build",
-    "build": "pnpm build:overlay && pnpm build:ws"
+    "build:controller": "pnpm --filter hud-controller build",
+    "build": "pnpm build:overlay && pnpm build:ws && pnpm build:controller"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",

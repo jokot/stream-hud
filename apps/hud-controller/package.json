@@ -1,0 +1,53 @@
+{
+  "name": "hud-controller",
+  "version": "0.1.0",
+  "description": "Global shortcuts controller for Stream HUD checklist",
+  "main": "dist/main.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "pack:mac": "electron-builder --mac",
+    "pack:win": "electron-builder --win",
+    "pack:linux": "electron-builder --linux",
+    "start": "electron dist/main.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0",
+    "electron-auto-launch": "^5.0.5",
+    "ws": "^8.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.0",
+    "electron-vite": "^1.0.29",
+    "typescript": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.streamhud.controller",
+    "productName": "Stream HUD Controller",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "build/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
