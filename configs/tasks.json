@@ -8,54 +8,54 @@
       "order": 0
     },
     {
-      "id": "task_1757687900540_5jv3t40n2",
-      "text": "Add shortcut for delete task",
-      "done": true,
-      "completed": true,
-      "order": 1
-    },
-    {
       "id": "task_1757687934257_5ffu7aubx",
       "text": "remove unececary notification",
       "done": true,
       "completed": true,
-      "order": 2
+      "order": 1
     },
     {
       "id": "task_1757687993473_fo4oow4bx",
       "text": "fix navigaiton select item when we add new item",
       "done": true,
       "completed": true,
-      "order": 3
+      "order": 2
     },
     {
       "id": "task_1757691708054_6lt6c7aux",
       "text": "Add \"No task selected to delete\" Dialog",
       "done": true,
       "completed": true,
+      "order": 3
+    },
+    {
+      "id": "task_debug_test_123",
+      "text": "🔍 Debug test - Real-time update check",
+      "done": true,
+      "completed": true,
       "order": 4
     },
     {
-      "id": "task_1757696141677_a003cjivg",
-      "text": "4",
-      "done": false,
-      "completed": false,
+      "id": "task_debug_test_456",
+      "text": "🎯 All debug logs removed - Production ready",
+      "done": true,
+      "completed": true,
       "order": 5
     },
     {
-      "id": "task_1757696192213_0txj8781p",
-      "text": "7",
+      "id": "task_1758036159278_iopxe9yom",
+      "text": "move beteng to infront of another beteng",
       "done": false,
       "completed": false,
       "order": 6
     },
     {
-      "id": "task_1757696258099_53do1wymo",
-      "text": "task 10",
+      "id": "task_1758036187048_5hfj71odu",
+      "text": "add rearange item",
       "done": false,
       "completed": false,
       "order": 7
     }
   ],
-  "ts": 1757696275
+  "ts": 1758036187
 }

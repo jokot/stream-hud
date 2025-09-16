@@ -87,11 +87,18 @@ export class ChecklistDataSource {
 
       this.ws.onmessage = (event) => {
         try {
+          if (!event.data) {
+            console.error('WebSocket message has no data');
+            return;
+          }
+          
           const payload: ChecklistPayload = JSON.parse(event.data);
           payload.source = 'ws';
+          
           this.onData(payload);
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
+          console.error('Raw message data:', event.data);
         }
       };
 

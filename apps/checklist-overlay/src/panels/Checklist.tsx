@@ -21,12 +21,17 @@ export function Checklist({ config }: ChecklistProps) {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const handleData = useCallback((payload: ChecklistPayload) => {
-    console.log('handleData called with:', payload.items.length, 'items, source:', payload.source);
-    setItems(payload.items);
+    // Validate payload structure - handle both message formats
+    const taskList = payload.tasks || payload.items;
+    if (!taskList || !Array.isArray(taskList)) {
+      console.error('Invalid payload - no valid task array found:', payload);
+      return;
+    }
+    
+    setItems(taskList);
     setLastUpdate(payload.ts);
     setSelectedTaskId(payload.selectedTaskId || null);
-    console.log('State updated - new items should be:', payload.items.length);
-  }, []);
+  }, [items.length]);
 
   const handleStatus = useCallback((connected: boolean, sourceType: 'ws' | 'poll') => {
     setIsConnected(connected);
@@ -43,9 +48,7 @@ export function Checklist({ config }: ChecklistProps) {
     };
   }, []); // Remove dependencies to prevent recreation
 
-  useEffect(() => {
-    console.log('Items state changed to:', items?.length || 0, 'items');
-  }, [items]);
+
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -77,8 +80,6 @@ export function Checklist({ config }: ChecklistProps) {
   }, {} as GroupedItems);
 
   const hasGroups = Object.keys(groupedItems).length > 1 || (Object.keys(groupedItems).length === 1 && !groupedItems.default);
-  
-  console.log('Render - items:', items?.length || 0, 'hasGroups:', hasGroups, 'groupedItems:', Object.keys(groupedItems).map(k => `${k}:${groupedItems[k].length}`).join(', '));
 
   return (
     <div className="p-4 w-fit max-w-md">

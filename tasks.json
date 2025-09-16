@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "id": "1",
+      "text": "Test item 1 - Debug logging setup",
+      "done": false
+    },
+    {
+      "id": "2",
+      "text": "Test item 2 - WebSocket connection",
+      "done": true
+    },
+    {
+      "id": "3",
+      "text": "Test item 3 - Real-time updates",
+      "done": false
+    },
+    {
+      "id": "4",
+      "text": "Test item 4 - Added to test debug logs",
+      "done": true
+    },
+    {
+      "id": "5",
+      "text": "Test item 5 - Testing real-time updates",
+      "done": false
+    }
+  ],
+  "selectedTaskId": "1"
+}
