@@ -191,6 +191,30 @@ class ChecklistWebSocketServer {
       res.json({ success: true, message: 'Task deleted successfully', deletedTask: deletedTask.text });
     });
 
+    // POST /tasks/edit - Edit task by ID
+    this.app.post('/tasks/edit', authenticateAdmin, (req, res) => {
+      const { id, text } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ error: 'Task text is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const task = this.lastData.items.find(item => item.id === id);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      const oldText = task.text;
+      this.editTask(id, text.trim());
+      res.json({ success: true, message: 'Task updated successfully', oldText, newText: text.trim() });
+    });
+
     // POST /tasks/select - Update selected task
     this.app.post('/tasks/select', authenticateAdmin, (req, res) => {
       const { taskId } = req.body;
@@ -468,7 +492,22 @@ class ChecklistWebSocketServer {
     this.saveTasksFile();
     this.broadcastToAll(this.lastData);
     
-    console.log(`✅ Deleted task: "${deletedTask.text}"`);
+    console.log(`✅ Deleted task: "${deletedTask.text}"`);    return true;
+  }
+
+  private editTask(taskId: string, newText: string): boolean {
+    if (!this.lastData) return false;
+    
+    const task = this.lastData.items.find(item => item.id === taskId);
+    if (!task) return false;
+    
+    const oldText = task.text;
+    task.text = newText;
+    
+    this.saveTasksFile();
+    this.broadcastToAll(this.lastData);
+    
+    console.log(`✅ Edited task: "${oldText}" -> "${newText}"`);
     return true;
   }
 

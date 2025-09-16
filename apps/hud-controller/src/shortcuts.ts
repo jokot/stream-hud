@@ -11,6 +11,7 @@ interface ShortcutConfig {
   reset: string
   addTask?: string
   deleteTask?: string
+  editTask?: string
 }
 
 interface Config {
@@ -69,6 +70,14 @@ export function registerAllShortcuts(config: Config): boolean {
   if (shortcuts.deleteTask) {
     if (!registerShortcut(shortcuts.deleteTask, handleDeleteTask)) {
       console.warn(`Failed to register shortcut: ${shortcuts.deleteTask}`)
+      allRegistered = false
+    }
+  }
+
+  // Register edit task shortcut (optional)
+  if (shortcuts.editTask) {
+    if (!registerShortcut(shortcuts.editTask, handleEditTask)) {
+      console.warn(`Failed to register shortcut: ${shortcuts.editTask}`)
       allRegistered = false
     }
   }
@@ -335,6 +344,103 @@ async function handleDeleteTask(): Promise<void> {
   } catch (error) {
     console.error('Error deleting task:', error)
     showNotification('Delete Error', 'An error occurred while deleting the task')
+  }
+}
+
+async function handleEditTask(): Promise<void> {
+  try {
+    const taskManager = getTaskManager()
+    const selectedTask = taskManager.getSelectedTask()
+    
+    if (!selectedTask) {
+      return
+    }
+
+    // Use a simple prompt as fallback since Electron doesn't have built-in input dialog
+    const { BrowserWindow } = require('electron')
+    const inputWindow = new BrowserWindow({
+      width: 400,
+      height: 200,
+      modal: true,
+      resizable: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false
+      }
+    })
+
+    const inputHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Edit Task</title>
+        <style>
+          body { font-family: system-ui; padding: 20px; margin: 0; }
+          input { width: 100%; padding: 8px; margin: 10px 0; font-size: 14px; }
+          button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+          .buttons { text-align: right; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <h3>Edit Task</h3>
+        <input type="text" id="taskInput" placeholder="Enter task description..." value="${selectedTask.text.replace(/"/g, '&quot;')}" autofocus>
+        <div class="buttons">
+          <button onclick="cancel()">Cancel</button>
+          <button onclick="saveTask()">Save Task</button>
+        </div>
+        <script>
+          const { ipcRenderer } = require('electron')
+          function cancel() {
+            ipcRenderer.send('input-result', null)
+          }
+          function saveTask() {
+            const value = document.getElementById('taskInput').value.trim()
+            if (value) {
+              ipcRenderer.send('input-result', value)
+            }
+          }
+          document.getElementById('taskInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveTask()
+            if (e.key === 'Escape') cancel()
+          })
+          // Select all text on focus
+          document.getElementById('taskInput').select()
+        </script>
+      </body>
+      </html>
+    `
+
+    inputWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(inputHtml))
+
+    const taskText = await new Promise<string | null>((resolve) => {
+      const { ipcMain } = require('electron')
+      const handler = (_: any, result: string | null) => {
+        ipcMain.removeListener('input-result', handler)
+        inputWindow.close()
+        resolve(result)
+      }
+      ipcMain.on('input-result', handler)
+      
+      inputWindow.on('closed', () => {
+        ipcMain.removeListener('input-result', handler)
+        resolve(null)
+      })
+    })
+
+    if (!taskText || taskText === selectedTask.text) {
+      return // No changes or cancelled
+    }
+
+    const api = getApi()
+    const success = await api.editTask(selectedTask.id, taskText)
+    if (success) {
+      showNotification('Checklist', `Updated task: "${taskText}"`)
+    } else {
+      showNotification('Error', 'Failed to update task')
+    }
+  } catch (error) {
+    console.error('Error in handleEditTask:', error)
+    showNotification('Error', 'Failed to edit task')
   }
 }
 

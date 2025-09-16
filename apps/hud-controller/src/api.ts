@@ -124,6 +124,16 @@ class ChecklistApi {
     }
   }
 
+  async editTask(taskId: string, text: string): Promise<boolean> {
+    try {
+      await this.client.post('/tasks/edit', { id: taskId, text })
+      return true
+    } catch (error) {
+      console.error('Failed to edit task:', error)
+      return false
+    }
+  }
+
   async selectTask(taskId: string | null): Promise<boolean> {
     try {
       const response = await this.client.post('/tasks/select', { taskId })

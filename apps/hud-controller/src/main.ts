@@ -23,7 +23,8 @@ interface Config {
     selectDown: string
     reset: string
     addTask?: string
-    deleteTask?: string
+    deleteTask?: string,
+    editTask?: string
   }
 }
 
@@ -41,7 +42,8 @@ function loadConfig(): Config {
       selectDown: process.env.SHORTCUT_SELECT_DOWN || 'Alt+Shift+J',
       reset: process.env.SHORTCUT_RESET || 'Alt+Shift+R',
       addTask: process.env.SHORTCUT_ADD_TASK || 'Alt+Shift+G',
-      deleteTask: process.env.SHORTCUT_DELETE_TASK || 'Alt+Shift+D'
+      deleteTask: process.env.SHORTCUT_DELETE_TASK || 'Alt+Shift+D',
+      editTask: process.env.SHORTCUT_EDIT_TASK || 'Alt+Shift+E'
     },
     autostart: process.env.AUTOSTART === 'true',
     notifications: process.env.NOTIFICATIONS !== 'false',
