@@ -47,7 +47,7 @@ function loadConfig(): Config {
     notifications: process.env.NOTIFICATIONS !== 'false',
     pollInterval: parseInt(process.env.POLL_INTERVAL || '2000', 10)
   }
-
+  
   // Validate required config
   if (!defaultConfig.adminToken || defaultConfig.adminToken === '') {
     showNotification('Configuration Error', 'Admin token is missing. Please check your .env file.')
@@ -72,7 +72,10 @@ async function initializeApp() {
       showNotification('Connection Warning', 'Cannot connect to checklist service. Some features may not work.')
     }
 
-    // Create tray
+    // Initialize task manager first (required by tray)
+    initializeTaskManager(config)
+    
+    // Create tray after TaskManager is initialized
     const iconPath = join(__dirname, '../build/icon.png')
     tray = createTray(iconPath, config)
     
@@ -81,9 +84,6 @@ async function initializeApp() {
     if (!shortcutsRegistered) {
       showNotification('Shortcuts Warning', 'Some shortcuts could not be registered. They may be reserved by the system.')
     }
-
-    // Initialize task manager (polling/WebSocket)
-    initializeTaskManager(config)
 
     // Setup autostart if enabled
     if (config.autostart) {

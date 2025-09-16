@@ -24,8 +24,8 @@
     {
       "id": "task_1757691708054_6lt6c7aux",
       "text": "Add \"No task selected to delete\" Dialog",
-      "done": true,
-      "completed": true,
+      "done": false,
+      "completed": false,
       "order": 3
     },
     {
@@ -43,19 +43,26 @@
       "order": 5
     },
     {
-      "id": "task_1758036159278_iopxe9yom",
-      "text": "move beteng to infront of another beteng",
+      "id": "task_1758036187048_5hfj71odu",
+      "text": "add rearange item",
       "done": false,
       "completed": false,
       "order": 6
     },
     {
-      "id": "task_1758036187048_5hfj71odu",
-      "text": "add rearange item",
+      "id": "task_1758037132629_prxvhcyur",
+      "text": "🔧 Testing reset functionality - please use Ctrl+Shift+R",
+      "done": true,
+      "completed": true,
+      "order": 7
+    },
+    {
+      "id": "task_1758039746414_uryzq3veo",
+      "text": "edit item",
       "done": false,
       "completed": false,
-      "order": 7
+      "order": 8
     }
   ],
-  "ts": 1758036187
+  "ts": 1758039746
 }
