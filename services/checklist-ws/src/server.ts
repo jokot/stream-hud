@@ -272,6 +272,28 @@ class ChecklistWebSocketServer {
       res.json({ success: true, message: 'Task moved down successfully' });
     });
 
+    // POST /tasks/move-to-position - Move task to specific position
+    this.app.post('/tasks/move-to-position', authenticateAdmin, (req, res) => {
+      const { taskId, targetPosition } = req.body;
+      if (!taskId) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      if (typeof targetPosition !== 'number' || targetPosition < 0) {
+        return res.status(400).json({ error: 'Valid target position is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const success = this.moveTaskToPosition(taskId, targetPosition);
+      if (!success) {
+        return res.status(404).json({ error: 'Task not found or invalid position' });
+      }
+      
+      res.json({ success: true, message: 'Task moved to position successfully' });
+    });
+
     // GET /control - Simple control page (optional)
     this.app.get('/control', (req, res) => {
       res.send(`
@@ -617,6 +639,44 @@ class ChecklistWebSocketServer {
       
       console.log(`✅ Moved task "${task.text}" down`);
     }
+    
+    this.debouncedSave();
+    this.broadcastToAll(this.lastData);
+    
+    return true;
+  }
+
+  private moveTaskToPosition(taskId: string, targetPosition: number): boolean {
+    if (!this.lastData || this.lastData.items.length === 0) {
+      return false;
+    }
+
+    const currentIndex = this.lastData.items.findIndex(item => item.id === taskId);
+    if (currentIndex === -1) {
+      return false;
+    }
+
+    // Clamp target position to valid range
+    const maxPosition = this.lastData.items.length - 1;
+    const clampedPosition = Math.max(0, Math.min(targetPosition, maxPosition));
+
+    // If already at target position, no need to move
+    if (currentIndex === clampedPosition) {
+      return true;
+    }
+
+    // Remove task from current position
+    const [task] = this.lastData.items.splice(currentIndex, 1);
+    
+    // Insert task at target position
+    this.lastData.items.splice(clampedPosition, 0, task);
+    
+    // Update all order properties
+    this.lastData.items.forEach((item, index) => {
+      item.order = index;
+    });
+    
+    console.log(`✅ Moved task "${task.text}" from position ${currentIndex} to position ${clampedPosition}`);
     
     this.debouncedSave();
     this.broadcastToAll(this.lastData);

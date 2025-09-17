@@ -44,4 +44,25 @@
   .status-poll {
     @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
   }
+
+  /* Drag and Drop Styles */
+  .dragging {
+    @apply opacity-50 scale-95 cursor-grabbing;
+  }
+
+  .drag-over {
+    @apply border-blue-400 dark:border-blue-500 border-2 border-dashed bg-blue-50/50 dark:bg-blue-900/20;
+  }
+
+  .drop-zone {
+    @apply border-2 border-transparent transition-all duration-200;
+  }
+
+  .drop-zone-active {
+    @apply border-blue-400 dark:border-blue-500 border-dashed bg-blue-50/30 dark:bg-blue-900/10;
+  }
+
+  .drag-preview {
+    @apply opacity-80 transform rotate-2 shadow-xl;
+  }
 }

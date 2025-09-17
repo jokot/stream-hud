@@ -19,6 +19,7 @@ export function Checklist({ config }: ChecklistProps) {
   const [source, setSource] = useState<'ws' | 'poll'>('poll');
   const [dataSource, setDataSource] = useState<ChecklistDataSource | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<ChecklistItem | null>(null);
 
   const handleData = useCallback((payload: ChecklistPayload) => {
     // Validate payload structure - handle both message formats
@@ -81,6 +82,48 @@ export function Checklist({ config }: ChecklistProps) {
 
   const hasGroups = Object.keys(groupedItems).length > 1 || (Object.keys(groupedItems).length === 1 && !groupedItems.default);
 
+  const handleDragStart = useCallback((item: ChecklistItem) => {
+    setDraggedItem(item);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedItem(null);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, targetItem: ChecklistItem) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetItem: ChecklistItem) => {
+    e.preventDefault();
+    
+    if (!draggedItem || draggedItem.id === targetItem.id) {
+      return;
+    }
+
+    const draggedIndex = items.findIndex(item => item.id === draggedItem.id);
+    const targetIndex = items.findIndex(item => item.id === targetItem.id);
+    
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    // Call API to move task to new position
+    fetch('http://localhost:7006/tasks/move-to-position', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer devtoken',
+      },
+      body: JSON.stringify({ 
+        taskId: draggedItem.id, 
+        targetPosition: targetIndex 
+      }),
+    }).catch(error => {
+      console.error('Failed to move task:', error);
+    });
+  }, [draggedItem, items]);
+
   return (
     <div className="p-4 w-fit max-w-md">
       <motion.div
@@ -141,6 +184,10 @@ export function Checklist({ config }: ChecklistProps) {
                       item={item}
                       compact={config.compact}
                       isSelected={item.id === selectedTaskId}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
                     />
                   ))}
                 </div>
@@ -153,6 +200,10 @@ export function Checklist({ config }: ChecklistProps) {
                   item={item}
                   compact={config.compact}
                   isSelected={item.id === selectedTaskId}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
                 />
               ))
             )}
@@ -174,10 +225,23 @@ interface ChecklistItemProps {
   item: ChecklistItem;
   compact: boolean;
   isSelected: boolean;
+  onDragStart?: (item: ChecklistItem) => void;
+  onDragEnd?: () => void;
+  onDragOver?: (e: React.DragEvent, targetItem: ChecklistItem) => void;
+  onDrop?: (e: React.DragEvent, targetItem: ChecklistItem) => void;
 }
 
-function ChecklistItemComponent({ item, compact, isSelected }: ChecklistItemProps) {
-  const handleClick = () => {
+function ChecklistItemComponent({ item, compact, isSelected, onDragStart, onDragEnd, onDragOver, onDrop }: ChecklistItemProps) {
+  const [isDragOver, setIsDragOver] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent click when dragging
+    if (isDragging) {
+      e.preventDefault();
+      return;
+    }
+    
     // Toggle task completion status
     fetch('http://localhost:7006/tasks/toggle', {
       method: 'POST',
@@ -191,16 +255,59 @@ function ChecklistItemComponent({ item, compact, isSelected }: ChecklistItemProp
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.id);
+    onDragStart?.(item);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    onDragEnd?.();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+    onDragOver?.(e, item);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    onDrop?.(e, item);
+  };
+
   return (
     <motion.div
       layout
       initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
+      animate={{ 
+        opacity: isDragging ? 0.5 : 1, 
+        x: 0,
+        scale: isDragging ? 0.95 : 1
+      }}
       exit={{ opacity: 0, x: 10 }}
       transition={{ duration: 0.2 }}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       onClick={handleClick}
-      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md transition-colors cursor-pointer ${
-        isSelected 
+      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md transition-all duration-200 cursor-pointer ${
+        isDragging
+          ? 'bg-blue-200 dark:bg-blue-800/50 border-2 border-blue-500 dark:border-blue-400 shadow-lg transform rotate-1'
+          : isDragOver
+          ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-400 dark:border-green-500 shadow-md'
+          : isSelected 
           ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-md' 
           : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2 border-transparent'
       }`}
