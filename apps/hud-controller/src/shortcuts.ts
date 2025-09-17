@@ -12,6 +12,8 @@ interface ShortcutConfig {
   addTask?: string
   deleteTask?: string
   editTask?: string
+  moveTaskUp?: string
+  moveTaskDown?: string
 }
 
 interface Config {
@@ -78,6 +80,22 @@ export function registerAllShortcuts(config: Config): boolean {
   if (shortcuts.editTask) {
     if (!registerShortcut(shortcuts.editTask, handleEditTask)) {
       console.warn(`Failed to register shortcut: ${shortcuts.editTask}`)
+      allRegistered = false
+    }
+  }
+
+  // Register move task up shortcut (optional)
+  if (shortcuts.moveTaskUp) {
+    if (!registerShortcut(shortcuts.moveTaskUp, handleMoveTaskUp)) {
+      console.warn(`Failed to register shortcut: ${shortcuts.moveTaskUp}`)
+      allRegistered = false
+    }
+  }
+
+  // Register move task down shortcut (optional)
+  if (shortcuts.moveTaskDown) {
+    if (!registerShortcut(shortcuts.moveTaskDown, handleMoveTaskDown)) {
+      console.warn(`Failed to register shortcut: ${shortcuts.moveTaskDown}`)
       allRegistered = false
     }
   }
@@ -441,6 +459,52 @@ async function handleEditTask(): Promise<void> {
   } catch (error) {
     console.error('Error in handleEditTask:', error)
     showNotification('Error', 'Failed to edit task')
+  }
+}
+
+async function handleMoveTaskUp(): Promise<void> {
+  try {
+    const taskManager = getTaskManager()
+    const selectedTask = taskManager.getSelectedTask()
+    
+    if (!selectedTask) {
+      showNotification('Error', 'No task selected')
+      return
+    }
+
+    const api = getApi()
+    const success = await api.moveTaskUp(selectedTask.id)
+    if (success) {
+      showNotification('Checklist', `Moved "${selectedTask.text}" up`)
+    } else {
+      showNotification('Error', 'Failed to move task up')
+    }
+  } catch (error) {
+    console.error('Error in handleMoveTaskUp:', error)
+    showNotification('Error', 'Failed to move task up')
+  }
+}
+
+async function handleMoveTaskDown(): Promise<void> {
+  try {
+    const taskManager = getTaskManager()
+    const selectedTask = taskManager.getSelectedTask()
+    
+    if (!selectedTask) {
+      showNotification('Error', 'No task selected')
+      return
+    }
+
+    const api = getApi()
+    const success = await api.moveTaskDown(selectedTask.id)
+    if (success) {
+      showNotification('Checklist', `Moved "${selectedTask.text}" down`)
+    } else {
+      showNotification('Error', 'Failed to move task down')
+    }
+  } catch (error) {
+    console.error('Error in handleMoveTaskDown:', error)
+    showNotification('Error', 'Failed to move task down')
   }
 }
 

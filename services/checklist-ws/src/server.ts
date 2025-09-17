@@ -40,6 +40,7 @@ class ChecklistWebSocketServer {
   private clients = new Set<WebSocket>();
   private adminToken: string = 'devtoken';
   private selectedTaskId: string | null = null;
+  private saveTimeout: NodeJS.Timeout | null = null;
 
   constructor(port = 7006) {
     // Path to tasks.json (relative to project root)
@@ -231,6 +232,44 @@ class ChecklistWebSocketServer {
       this.selectedTaskId = taskId || null;
       this.broadcastSelectionUpdate();
       res.json({ success: true, selectedTaskId: this.selectedTaskId });
+    });
+
+    // POST /tasks/move-up - Move task up in order
+    this.app.post('/tasks/move-up', authenticateAdmin, (req, res) => {
+      const { id } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const success = this.moveTaskUp(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Task not found or cannot move up' });
+      }
+      
+      res.json({ success: true, message: 'Task moved up successfully' });
+    });
+
+    // POST /tasks/move-down - Move task down in order
+    this.app.post('/tasks/move-down', authenticateAdmin, (req, res) => {
+      const { id } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: 'Task ID is required' });
+      }
+      
+      if (!this.lastData) {
+        return res.status(404).json({ error: 'No tasks data available' });
+      }
+      
+      const success = this.moveTaskDown(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Task not found or cannot move down' });
+      }
+      
+      res.json({ success: true, message: 'Task moved down successfully' });
     });
 
     // GET /control - Simple control page (optional)
@@ -511,6 +550,80 @@ class ChecklistWebSocketServer {
     return true;
   }
 
+  private moveTaskUp(taskId: string): boolean {
+    if (!this.lastData || this.lastData.items.length === 0) return false;
+    
+    const taskIndex = this.lastData.items.findIndex(item => item.id === taskId);
+    if (taskIndex === -1) return false; // Task not found
+    
+    const task = this.lastData.items[taskIndex];
+    
+    if (taskIndex === 0) {
+      // Wrap around: move from top to bottom
+      this.lastData.items.splice(taskIndex, 1);
+      this.lastData.items.push(task);
+      
+      // Update all order properties
+      this.lastData.items.forEach((item, index) => {
+        item.order = index;
+      });
+      
+      console.log(`✅ Moved task "${task.text}" to bottom (wrap around)`);
+    } else {
+      // Normal move up: swap with the task above
+      this.lastData.items[taskIndex] = this.lastData.items[taskIndex - 1];
+      this.lastData.items[taskIndex - 1] = task;
+      
+      // Only update order for the two affected items
+      this.lastData.items[taskIndex].order = taskIndex;
+      this.lastData.items[taskIndex - 1].order = taskIndex - 1;
+      
+      console.log(`✅ Moved task "${task.text}" up`);
+    }
+    
+    this.debouncedSave();
+    this.broadcastToAll(this.lastData);
+    
+    return true;
+  }
+
+  private moveTaskDown(taskId: string): boolean {
+    if (!this.lastData || this.lastData.items.length === 0) return false;
+    
+    const taskIndex = this.lastData.items.findIndex(item => item.id === taskId);
+    if (taskIndex === -1) return false; // Task not found
+    
+    const task = this.lastData.items[taskIndex];
+    
+    if (taskIndex === this.lastData.items.length - 1) {
+      // Wrap around: move from bottom to top
+      this.lastData.items.splice(taskIndex, 1);
+      this.lastData.items.unshift(task);
+      
+      // Update all order properties
+      this.lastData.items.forEach((item, index) => {
+        item.order = index;
+      });
+      
+      console.log(`✅ Moved task "${task.text}" to top (wrap around)`);
+    } else {
+      // Normal move down: swap with the task below
+      this.lastData.items[taskIndex] = this.lastData.items[taskIndex + 1];
+      this.lastData.items[taskIndex + 1] = task;
+      
+      // Only update order for the two affected items
+      this.lastData.items[taskIndex].order = taskIndex;
+      this.lastData.items[taskIndex + 1].order = taskIndex + 1;
+      
+      console.log(`✅ Moved task "${task.text}" down`);
+    }
+    
+    this.debouncedSave();
+    this.broadcastToAll(this.lastData);
+    
+    return true;
+  }
+
   private saveTasksFile(): boolean {
     if (!this.lastData) return false;
     
@@ -529,11 +642,30 @@ class ChecklistWebSocketServer {
     }
   }
 
+  private debouncedSave(): void {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    this.saveTimeout = setTimeout(() => {
+      this.saveTasksFile();
+      this.saveTimeout = null;
+    }, 100); // 100ms debounce
+  }
+
   public stop() {
     console.log('🛑 Stopping server...');
     
     if (this.broadcastInterval) {
       clearInterval(this.broadcastInterval);
+      this.broadcastInterval = null;
+    }
+
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+      // Save any pending changes before stopping
+      this.saveTasksFile();
     }
 
     this.clients.forEach(ws => {
@@ -541,7 +673,9 @@ class ChecklistWebSocketServer {
         ws.close();
       }
     });
+    this.clients.clear();
 
+    this.wss.close();
     this.server.close(() => {
       console.log('✅ Server stopped');
     });

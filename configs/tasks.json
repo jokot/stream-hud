@@ -8,75 +8,75 @@
       "order": 0
     },
     {
-      "id": "task_1757687934257_5ffu7aubx",
-      "text": "remove unececary notification",
+      "id": "task_1757687993473_fo4oow4bx",
+      "text": "fix navigaiton select item when we add new item",
       "done": true,
       "completed": true,
       "order": 1
     },
     {
-      "id": "task_1757687993473_fo4oow4bx",
-      "text": "fix navigaiton select item when we add new item",
+      "id": "task_1757687934257_5ffu7aubx",
+      "text": "remove unececary notification",
       "done": true,
       "completed": true,
       "order": 2
-    },
-    {
-      "id": "task_1757691708054_6lt6c7aux",
-      "text": "Add \"No task selected to delete\" Dialog",
-      "done": false,
-      "completed": false,
-      "order": 3
     },
     {
       "id": "task_debug_test_123",
       "text": "🔍 Debug test - Real-time update check",
       "done": true,
       "completed": true,
-      "order": 4
+      "order": 3
     },
     {
       "id": "task_debug_test_456",
       "text": "🎯 All debug logs removed - Production ready",
       "done": true,
       "completed": true,
-      "order": 5
-    },
-    {
-      "id": "task_1758036187048_5hfj71odu",
-      "text": "rearange item using shortcut",
-      "done": false,
-      "completed": false,
-      "order": 6
+      "order": 4
     },
     {
       "id": "task_1758037132629_prxvhcyur",
       "text": "🔧 Testing reset functionality - please use Ctrl+Shift+R",
       "done": true,
       "completed": true,
-      "order": 7
+      "order": 5
     },
     {
       "id": "task_1758039746414_uryzq3veo",
       "text": "add edit item",
       "done": true,
       "completed": true,
-      "order": 8
+      "order": 6
     },
     {
       "id": "task_1758122760072_mnmzssp99",
       "text": "toggle item by click",
       "done": true,
       "completed": true,
-      "order": 9
+      "order": 7
+    },
+    {
+      "id": "task_1758036187048_5hfj71odu",
+      "text": "rearange item using shortcut",
+      "done": true,
+      "completed": true,
+      "order": 8
     },
     {
       "id": "task_1758122769521_p1fn2e51s",
       "text": "rearange item using drag",
       "done": false,
       "completed": false,
+      "order": 9
+    },
+    {
+      "id": "task_1757691708054_6lt6c7aux",
+      "text": "Add \"No task selected to delete\" Dialog",
+      "done": false,
+      "completed": false,
       "order": 10
     }
   ],
-  "ts": 1758122803
+  "ts": 1758127087
 }

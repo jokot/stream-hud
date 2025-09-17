@@ -43,7 +43,9 @@ function loadConfig(): Config {
       reset: process.env.SHORTCUT_RESET || 'Alt+Shift+R',
       addTask: process.env.SHORTCUT_ADD_TASK || 'Alt+Shift+G',
       deleteTask: process.env.SHORTCUT_DELETE_TASK || 'Alt+Shift+D',
-      editTask: process.env.SHORTCUT_EDIT_TASK || 'Alt+Shift+E'
+      editTask: process.env.SHORTCUT_EDIT_TASK || 'Alt+Shift+E',
+      moveTaskUp: process.env.SHORTCUT_MOVE_TASK_UP || 'Alt+Shift+Up',
+      moveTaskDown: process.env.SHORTCUT_MOVE_TASK_DOWN || 'Alt+Shift+Down'
     },
     autostart: process.env.AUTOSTART === 'true',
     notifications: process.env.NOTIFICATIONS !== 'false',

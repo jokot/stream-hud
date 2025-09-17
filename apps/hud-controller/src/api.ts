@@ -144,6 +144,26 @@ class ChecklistApi {
     }
   }
 
+  async moveTaskUp(taskId: string): Promise<boolean> {
+    try {
+      await this.client.post('/tasks/move-up', { id: taskId })
+      return true
+    } catch (error) {
+      console.error('Failed to move task up:', error)
+      return false
+    }
+  }
+
+  async moveTaskDown(taskId: string): Promise<boolean> {
+    try {
+      await this.client.post('/tasks/move-down', { id: taskId })
+      return true
+    } catch (error) {
+      console.error('Failed to move task down:', error)
+      return false
+    }
+  }
+
   async testConnection(): Promise<boolean> {
     try {
       const response = await this.client.get('/tasks')
