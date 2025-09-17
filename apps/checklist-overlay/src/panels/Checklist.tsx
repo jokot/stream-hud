@@ -177,6 +177,20 @@ interface ChecklistItemProps {
 }
 
 function ChecklistItemComponent({ item, compact, isSelected }: ChecklistItemProps) {
+  const handleClick = () => {
+    // Toggle task completion status
+    fetch('http://localhost:7006/tasks/toggle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer devtoken',
+      },
+      body: JSON.stringify({ id: item.id }),
+    }).catch(error => {
+      console.error('Failed to toggle task:', error);
+    });
+  };
+
   return (
     <motion.div
       layout
@@ -184,7 +198,8 @@ function ChecklistItemComponent({ item, compact, isSelected }: ChecklistItemProp
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 10 }}
       transition={{ duration: 0.2 }}
-      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md transition-colors ${
+      onClick={handleClick}
+      className={`flex items-center space-x-3 ${compact ? 'py-1' : 'py-2'} px-2 rounded-md transition-colors cursor-pointer ${
         isSelected 
           ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-md' 
           : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2 border-transparent'

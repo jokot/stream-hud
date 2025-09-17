@@ -44,7 +44,7 @@
     },
     {
       "id": "task_1758036187048_5hfj71odu",
-      "text": "add rearange item",
+      "text": "rearange item using shortcut",
       "done": false,
       "completed": false,
       "order": 6
@@ -62,7 +62,21 @@
       "done": true,
       "completed": true,
       "order": 8
+    },
+    {
+      "id": "task_1758122760072_mnmzssp99",
+      "text": "toggle item by click",
+      "done": true,
+      "completed": true,
+      "order": 9
+    },
+    {
+      "id": "task_1758122769521_p1fn2e51s",
+      "text": "rearange item using drag",
+      "done": false,
+      "completed": false,
+      "order": 10
     }
   ],
-  "ts": 1758040793
+  "ts": 1758122803
 }
