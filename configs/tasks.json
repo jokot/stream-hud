@@ -73,17 +73,52 @@
     {
       "id": "task_1758122769521_p1fn2e51s",
       "text": "rearange item using drag",
+      "done": true,
+      "completed": true,
+      "order": 10
+    },
+    {
+      "id": "task_1758127869683_xreaqnsmj",
+      "text": "add library (folder), it's a group of tasks",
+      "done": true,
+      "completed": true,
+      "order": 11
+    },
+    {
+      "id": "task_1758204906302_jb26lxcv2",
+      "text": "add scroll",
+      "done": true,
+      "completed": true,
+      "order": 12
+    },
+    {
+      "id": "task_1758127762901_69968hhcp",
+      "text": "Shortcut to edit title",
       "done": false,
       "completed": false,
-      "order": 10
+      "order": 13
+    },
+    {
+      "id": "task_1758127805633_2cn7cjfn2",
+      "text": "remove last updated",
+      "done": false,
+      "completed": false,
+      "order": 14
     },
     {
       "id": "task_1757691708054_6lt6c7aux",
       "text": "Add \"No task selected to delete\" Dialog",
       "done": false,
       "completed": false,
-      "order": 11
+      "order": 15
+    },
+    {
+      "id": "task_1758204892754_dr96fghhj",
+      "text": "shortcut to hide panel",
+      "done": false,
+      "completed": false,
+      "order": 16
     }
   ],
-  "ts": 1758127594
+  "ts": 1758210201
 }

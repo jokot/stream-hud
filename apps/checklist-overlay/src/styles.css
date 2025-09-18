@@ -65,4 +65,36 @@
   .drag-preview {
     @apply opacity-80 transform rotate-2 shadow-xl;
   }
+
+  /* Custom Scrollbar Styles */
+  /* For the entire scrollbar, define width/height */
+  ::-webkit-scrollbar {
+    width: 6px; /* Or desired width */
+    height: 6px; /* Or desired height for horizontal scrollbar */
+  }
+
+  /* For the scrollbar track (the background) */
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Makes the track completely transparent */
+  }
+
+  /* For the scrollbar thumb (the draggable part) */
+  ::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5); /* Semi-transparent gray thumb */
+    border-radius: 3px; /* Rounded corners for the thumb */
+  }
+
+  /* Dark mode thumb */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(107, 114, 128, 0.5); /* Semi-transparent dark gray thumb */
+  }
+
+  /* Hover states */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.8);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.8);
+  }
 }

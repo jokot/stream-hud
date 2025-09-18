@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChecklistDataSource, ChecklistItem, ChecklistPayload } from '../lib/ws';
 import { formatPercent, formatProgress, calculateProgress } from '../lib/format';
@@ -20,6 +20,7 @@ export function Checklist({ config }: ChecklistProps) {
   const [dataSource, setDataSource] = useState<ChecklistDataSource | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<ChecklistItem | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleData = useCallback((payload: ChecklistPayload) => {
     // Validate payload structure - handle both message formats
@@ -48,6 +49,19 @@ export function Checklist({ config }: ChecklistProps) {
       ds.stop();
     };
   }, []); // Remove dependencies to prevent recreation
+
+  // Scroll to selected item
+  useEffect(() => {
+    if (selectedTaskId && scrollContainerRef.current) {
+      const selectedElement = scrollContainerRef.current.querySelector(`[data-task-id="${selectedTaskId}"]`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+  }, [selectedTaskId]);
 
 
 
@@ -167,20 +181,38 @@ export function Checklist({ config }: ChecklistProps) {
         )}
 
         {/* Items */}
-        <div className={`space-y-${config.compact ? '1' : '2'}`}>
-          <AnimatePresence>
-            {hasGroups ? (
-              // Render grouped items
-              Object.entries(groupedItems).map(([group, groupItems]) => (
-                <div key={group} className="space-y-1">
-                  {group !== 'default' && (
-                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      {group}
-                    </div>
-                  )}
-                  {groupItems.map((item) => (
+        <div ref={scrollContainerRef} className="max-h-[24rem] overflow-y-auto">
+          <div className={`space-y-${config.compact ? '1' : '2'}`}>
+            <AnimatePresence>
+              {hasGroups ? (
+                // Render grouped items
+                Object.entries(groupedItems).map(([group, groupItems]) => (
+                  <div key={group} className="space-y-1">
+                    {group !== 'default' && (
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        {group}
+                      </div>
+                    )}
+                    {groupItems.map((item) => (
+                      <div key={item.id} data-task-id={item.id}>
+                        <ChecklistItemComponent
+                          item={item}
+                          compact={config.compact}
+                          isSelected={item.id === selectedTaskId}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                // Render flat list
+                (items || []).map((item) => (
+                  <div key={item.id} data-task-id={item.id}>
                     <ChecklistItemComponent
-                      key={item.id}
                       item={item}
                       compact={config.compact}
                       isSelected={item.id === selectedTaskId}
@@ -189,25 +221,11 @@ export function Checklist({ config }: ChecklistProps) {
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                     />
-                  ))}
-                </div>
-              ))
-            ) : (
-              // Render flat list
-              (items || []).map((item) => (
-                <ChecklistItemComponent
-                  key={item.id}
-                  item={item}
-                  compact={config.compact}
-                  isSelected={item.id === selectedTaskId}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                />
-              ))
-            )}
-          </AnimatePresence>
+                  </div>
+                ))
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Footer info */}
