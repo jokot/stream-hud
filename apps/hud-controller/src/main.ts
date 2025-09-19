@@ -25,6 +25,9 @@ interface Config {
     addTask?: string
     deleteTask?: string,
     editTask?: string
+    moveTaskUp?: string
+    moveTaskDown?: string
+    hidePanel?: string
   }
 }
 
@@ -45,7 +48,8 @@ function loadConfig(): Config {
       deleteTask: process.env.SHORTCUT_DELETE_TASK || 'Alt+Shift+D',
       editTask: process.env.SHORTCUT_EDIT_TASK || 'Alt+Shift+E',
       moveTaskUp: process.env.SHORTCUT_MOVE_TASK_UP || 'Alt+Shift+Up',
-      moveTaskDown: process.env.SHORTCUT_MOVE_TASK_DOWN || 'Alt+Shift+Down'
+      moveTaskDown: process.env.SHORTCUT_MOVE_TASK_DOWN || 'Alt+Shift+Down',
+      hidePanel: process.env.SHORTCUT_HIDE_PANEL || 'Alt+Shift+H'
     },
     autostart: process.env.AUTOSTART === 'true',
     notifications: process.env.NOTIFICATIONS !== 'false',

@@ -14,6 +14,7 @@ interface ShortcutConfig {
   editTask?: string
   moveTaskUp?: string
   moveTaskDown?: string
+  hidePanel?: string
 }
 
 interface Config {
@@ -96,6 +97,14 @@ export function registerAllShortcuts(config: Config): boolean {
   if (shortcuts.moveTaskDown) {
     if (!registerShortcut(shortcuts.moveTaskDown, handleMoveTaskDown)) {
       console.warn(`Failed to register shortcut: ${shortcuts.moveTaskDown}`)
+      allRegistered = false
+    }
+  }
+
+  // Register hide panel shortcut (optional)
+  if (shortcuts.hidePanel) {
+    if (!registerShortcut(shortcuts.hidePanel, handleHidePanel)) {
+      console.warn(`Failed to register shortcut: ${shortcuts.hidePanel}`)
       allRegistered = false
     }
   }
@@ -505,6 +514,23 @@ async function handleMoveTaskDown(): Promise<void> {
   } catch (error) {
     console.error('Error in handleMoveTaskDown:', error)
     showNotification('Error', 'Failed to move task down')
+  }
+}
+
+async function handleHidePanel(): Promise<void> {
+  try {
+    const api = getApi()
+    const result = await api.togglePanelVisibility()
+    
+    if (result.success) {
+      showNotification('Panel', `Panel ${result.visible ? 'shown' : 'hidden'}`)
+    } else {
+      console.error('handleHidePanel: Failed to toggle panel visibility')
+      showNotification('Error', 'Failed to toggle panel visibility')
+    }
+  } catch (error) {
+    console.error('Error in handleHidePanel:', error)
+    showNotification('Error', 'Failed to toggle panel visibility')
   }
 }
 

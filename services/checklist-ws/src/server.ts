@@ -41,6 +41,7 @@ class ChecklistWebSocketServer {
   private adminToken: string = 'devtoken';
   private selectedTaskId: string | null = null;
   private saveTimeout: NodeJS.Timeout | null = null;
+  private panelVisible: boolean = true;
 
   constructor(port = 7006) {
     // Path to tasks.json (relative to project root)
@@ -317,6 +318,38 @@ class ChecklistWebSocketServer {
         </html>
       `);
     });
+
+    // GET /panel/visibility - Get panel visibility state
+    this.app.get('/panel/visibility', (req, res) => {
+      res.json({ visible: this.panelVisible });
+    });
+
+    // POST /panel/toggle - Toggle panel visibility
+    this.app.post('/panel/toggle', authenticateAdmin, (req, res) => {
+      this.panelVisible = !this.panelVisible;
+      console.log(`Panel visibility toggled to: ${this.panelVisible}`);
+      
+      // Broadcast visibility change to all connected clients
+      this.broadcastVisibilityUpdate();
+      
+      res.json({ success: true, visible: this.panelVisible });
+    });
+
+    // POST /panel/visibility - Set panel visibility
+    this.app.post('/panel/visibility', authenticateAdmin, (req, res) => {
+      const { visible } = req.body;
+      if (typeof visible !== 'boolean') {
+        return res.status(400).json({ error: 'visible must be a boolean' });
+      }
+      
+      this.panelVisible = visible;
+      console.log(`Panel visibility set to: ${this.panelVisible}`);
+      
+      // Broadcast visibility change to all connected clients
+      this.broadcastVisibilityUpdate();
+      
+      res.json({ success: true, visible: this.panelVisible });
+    });
   }
 
   private setupWebSocketHandlers() {
@@ -471,6 +504,39 @@ class ChecklistWebSocketServer {
           ws.send(message);
         } catch (error) {
           console.error('❌ Failed to broadcast selection update:', error);
+          clientsToRemove.push(ws);
+        }
+      } else {
+        clientsToRemove.push(ws);
+      }
+    });
+
+    // Clean up dead connections
+    clientsToRemove.forEach(ws => this.clients.delete(ws));
+  }
+
+  private broadcastVisibilityUpdate() {
+    if (this.clients.size === 0) {
+      return;
+    }
+
+    console.log(`📡 Broadcasting visibility update to ${this.clients.size} client(s): ${this.panelVisible}`);
+    
+    const payload = {
+      type: 'panel_visibility',
+      visible: this.panelVisible,
+      source: 'ws'
+    };
+
+    const message = JSON.stringify(payload);
+    const clientsToRemove: WebSocket[] = [];
+
+    this.clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(message);
+        } catch (error) {
+          console.error('❌ Failed to broadcast visibility update:', error);
           clientsToRemove.push(ws);
         }
       } else {

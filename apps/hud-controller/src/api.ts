@@ -172,6 +172,20 @@ class ChecklistApi {
       return false
     }
   }
+
+  async togglePanelVisibility(): Promise<{ success: boolean; visible?: boolean }> {
+    try {
+      const response = await this.client.post('/panel/toggle')
+      if (response.status === 200) {
+        return { success: true, visible: response.data.visible }
+      } else {
+        return { success: false }
+      }
+    } catch (error) {
+      this.handleApiError(error)
+      return { success: false }
+    }
+  }
 }
 
 let apiInstance: ChecklistApi | null = null
