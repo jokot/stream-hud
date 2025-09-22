@@ -228,12 +228,7 @@ export function Checklist({ config }: ChecklistProps) {
           </div>
         </div>
 
-        {/* Footer info */}
-        {!config.compact && lastUpdate > 0 && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            Last updated: {new Date(lastUpdate * 1000).toLocaleTimeString()}
-          </div>
-        )}
+
       </motion.div>
     </div>
   );

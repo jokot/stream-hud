@@ -92,33 +92,12 @@
       "order": 12
     },
     {
-      "id": "task_1758127869683_xreaqnsmj",
-      "text": "add library (folder), it's a group of tasks",
-      "done": false,
-      "completed": false,
-      "order": 13
-    },
-    {
-      "id": "task_1758127762901_69968hhcp",
-      "text": "Shortcut to edit title",
-      "done": false,
-      "completed": false,
-      "order": 14
-    },
-    {
       "id": "task_1758127805633_2cn7cjfn2",
       "text": "remove last updated",
-      "done": false,
-      "completed": false,
-      "order": 15
-    },
-    {
-      "id": "task_1757691708054_6lt6c7aux",
-      "text": "Add \"No task selected to delete\" Dialog",
-      "done": false,
-      "completed": false,
-      "order": 16
+      "done": true,
+      "completed": true,
+      "order": 13
     }
   ],
-  "ts": 1758296431
+  "ts": 1758556839
 }
