@@ -1,34 +1,52 @@
 # Checklist Overlay
 
-A React-based browser overlay for OBS that displays a live progress checklist with real-time updates.
+A React-based browser overlay for OBS that displays a real-time synchronized checklist with smooth animations and customizable appearance.
 
-## Features
+## 🎯 Purpose
 
-- 📋 **Live Checklist Display**: Shows tasks with completion status
-- 🔄 **Real-time Updates**: WebSocket connection with polling fallback
-- 🎨 **Customizable Appearance**: URL parameters for theming and layout
-- ⚡ **Responsive Design**: Adapts to different screen sizes and scales
-- ⌨️ **Keyboard Shortcuts**: Quick controls for live streaming
-- 🎥 **OBS Optimized**: Transparent background, optimized for streaming
+This overlay serves as the visual component of the Stream HUD system, designed to be used as a browser source in OBS Studio. It displays a dynamic checklist that updates in real-time based on WebSocket communications from the backend service.
 
-## Quick Start
+## ✨ Features
+
+- 🔄 **Real-time Updates**: Instant synchronization via WebSocket connection
+- 🎨 **Smooth Animations**: Powered by Framer Motion for professional transitions
+- 🎭 **OBS Ready**: Transparent background and optimized for streaming
+- ⚙️ **URL Configuration**: Customizable via URL parameters
+- 📱 **Responsive Design**: Adapts to different overlay sizes
+- 🎨 **Tailwind Styling**: Modern, utility-first CSS framework
+
+## 🛠️ Technology Stack
+
+- **React 18** - Modern React with hooks
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Animation library
+- **WebSocket** - Real-time communication
+
+## 🚀 Quick Start
 
 ### Development
-
 ```bash
-# Start the overlay app
-npm run dev
+# Install dependencies (from project root)
+pnpm install
 
-# Or from project root
+# Start development server
 pnpm dev:overlay
+
+# Or run from this directory
+pnpm dev
 ```
 
-The app will be available at `http://localhost:5173/`
+The overlay will be available at `http://localhost:5173`
 
 ### Production Build
-
 ```bash
-npm run build
+# Build for production
+pnpm build:overlay
+
+# Or from this directory
+pnpm build
 ```
 
 ## Usage

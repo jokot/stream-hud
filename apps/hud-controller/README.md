@@ -1,15 +1,27 @@
-# Stream HUD Controller
+# HUD Controller
 
-A cross-platform Electron tray application that provides global keyboard shortcuts for controlling the Stream HUD checklist. Works even when other applications (like OBS or games) are in focus.
+A desktop Electron application that provides global keyboard shortcuts and system tray integration for controlling the Stream HUD checklist system.
 
-## Features
+## 🎯 Purpose
 
-- **Global Shortcuts**: Control checklist from anywhere, even when other apps are focused
-- **System Tray Integration**: Minimal UI with tray menu for easy access
-- **Real-time Sync**: WebSocket connection with fallback to HTTP polling
-- **Cross-platform**: Works on Windows, macOS, and Linux
-- **Auto-start**: Optional system startup integration
-- **Secure**: Local-only communication with admin token authentication
+The HUD Controller acts as the command center for streamers, allowing them to control their checklist overlay without switching focus from their streaming software or games. It runs silently in the background and communicates with the WebSocket service to update the overlay in real-time.
+
+## ✨ Features
+
+- ⌨️ **Global Shortcuts**: Control checklist from anywhere on your system
+- 🖥️ **System Tray**: Minimal interface with quick access
+- 🚀 **Auto-Launch**: Starts automatically with your system
+- 🔄 **Real-time Sync**: WebSocket communication with overlay
+- 🎮 **Gaming Friendly**: Works even when games are in fullscreen
+- ⚙️ **Configurable**: Customizable shortcuts and settings
+
+## 🛠️ Technology Stack
+
+- **Electron 27** - Cross-platform desktop framework
+- **TypeScript** - Type-safe development
+- **Electron-Vite** - Fast build tool for Electron
+- **WebSocket Client** - Real-time communication
+- **Auto-Launch** - System startup integration
 
 ## Quick Start
 
@@ -48,8 +60,13 @@ A cross-platform Electron tray application that provides global keyboard shortcu
 | `Alt+Shift+Space` | Toggle currently selected task |
 | `Alt+Shift+J` | Move selection down |
 | `Alt+Shift+K` | Move selection up |
-| `Alt+Shift+R` | Reset all tasks (with confirmation) |
+| `Ctrl+Shift+R` | Reset all tasks (with confirmation) |
 | `Alt+Shift+G` | Add new task (quick input) |
+| `Alt+Shift+D` | Delete selected task |
+| `Alt+Shift+E` | Edit selected task |
+| `Alt+Shift+Up` | Move task up |
+| `Alt+Shift+Down` | Move task down |
+| `Alt+Shift+H` | Hide/show panel |
 
 ## Configuration
 
