@@ -1,0 +1,98 @@
+{
+  "overlay": {
+    "layout": "row",
+    "gap": 16,
+    "scale": 1.0,
+    "theme": "auto",
+    "panels": [
+      {
+        "id": "checklist",
+        "size": "medium",
+        "title": "Tasks",
+        "showProgress": true,
+        "compact": false
+      },
+      {
+        "id": "nethud",
+        "size": "small",
+        "title": "Network",
+        "compact": true
+      }
+    ]
+  },
+  "websockets": {
+    "checklist": {
+      "url": "ws://localhost:7006/checklist",
+      "fallbackUrl": "/configs/tasks.json",
+      "enablePolling": true,
+      "pollInterval": 2000
+    },
+    "nethud": {
+      "url": "ws://localhost:7007/nethud",
+      "fallbackUrl": "/configs/nethud.json",
+      "enablePolling": true,
+      "pollInterval": 1000
+    },
+    "ai": {
+      "url": "ws://localhost:7008/ai",
+      "fallbackUrl": "/configs/ai.json",
+      "enablePolling": false
+    }
+  },
+  "visibility": {
+    "endpoint": "http://localhost:7005/overlay/visibility",
+    "pollInterval": 1000,
+    "defaultVisible": true
+  },
+  "shortcuts": {
+    "toggleVisibility": "Alt+Shift+H",
+    "reload": "r",
+    "clearAlerts": "c"
+  },
+  "themes": {
+    "auto": {
+      "description": "Follow system theme"
+    },
+    "light": {
+      "description": "Light theme"
+    },
+    "dark": {
+      "description": "Dark theme"
+    }
+  },
+  "layouts": {
+    "row": {
+      "description": "Horizontal layout",
+      "direction": "horizontal"
+    },
+    "column": {
+      "description": "Vertical layout", 
+      "direction": "vertical"
+    },
+    "grid2": {
+      "description": "2x2 grid layout",
+      "columns": 2
+    },
+    "stack": {
+      "description": "Stacked layout (overlapping)",
+      "stacked": true
+    }
+  },
+  "panelSizes": {
+    "small": {
+      "width": "16rem",
+      "maxWidth": "20rem"
+    },
+    "medium": {
+      "width": "20rem", 
+      "maxWidth": "24rem"
+    },
+    "large": {
+      "width": "24rem",
+      "maxWidth": "28rem"
+    },
+    "full": {
+      "width": "100%"
+    }
+  }
+}

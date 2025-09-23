@@ -8,96 +8,89 @@
       "order": 0
     },
     {
-      "id": "task_1758127209599_uw6279e0v",
-      "text": "fix delete",
-      "done": true,
-      "completed": true,
-      "order": 1
-    },
-    {
       "id": "task_1757687993473_fo4oow4bx",
       "text": "fix navigaiton select item when we add new item",
       "done": true,
       "completed": true,
-      "order": 2
+      "order": 1
     },
     {
       "id": "task_1757687934257_5ffu7aubx",
       "text": "remove unececary notification",
       "done": true,
       "completed": true,
-      "order": 3
+      "order": 2
     },
     {
       "id": "task_debug_test_123",
       "text": "🔍 Debug test - Real-time update check",
       "done": true,
       "completed": true,
-      "order": 4
+      "order": 3
     },
     {
       "id": "task_debug_test_456",
       "text": "🎯 All debug logs removed - Production ready",
       "done": true,
       "completed": true,
-      "order": 5
+      "order": 4
     },
     {
       "id": "task_1757687886901_m3fpiptua",
       "text": "Fix reset shortcut",
       "done": true,
       "completed": true,
-      "order": 6
+      "order": 5
     },
     {
       "id": "task_1758037132629_prxvhcyur",
       "text": "🔧 Testing reset functionality - please use Ctrl+Shift+R",
       "done": true,
       "completed": true,
-      "order": 7
+      "order": 6
     },
     {
       "id": "task_1758122760072_mnmzssp99",
       "text": "toggle item by click",
       "done": true,
       "completed": true,
-      "order": 8
+      "order": 7
     },
     {
       "id": "task_1758036187048_5hfj71odu",
       "text": "rearange item using shortcut",
       "done": true,
       "completed": true,
-      "order": 9
+      "order": 8
     },
     {
       "id": "task_1758122769521_p1fn2e51s",
       "text": "rearange item using drag",
       "done": true,
       "completed": true,
-      "order": 10
+      "order": 9
     },
     {
       "id": "task_1758204906302_jb26lxcv2",
       "text": "add scroll",
       "done": true,
       "completed": true,
-      "order": 11
+      "order": 10
     },
     {
       "id": "task_1758204892754_dr96fghhj",
       "text": "shortcut to hide panel",
       "done": true,
       "completed": true,
-      "order": 12
+      "order": 11
     },
     {
       "id": "task_1758127805633_2cn7cjfn2",
       "text": "remove last updated",
       "done": true,
       "completed": true,
-      "order": 13
+      "order": 12
     }
   ],
-  "ts": 1758556839
+  "ts": 1758646923
 }

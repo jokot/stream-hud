@@ -1,183 +1,228 @@
-Awesome — here’s a clean, copy-pasteable **one-shot prompt** to generate the **Checklist overlay** as a standalone first-win, plus the **project structure (only for this feature)**.
+# **Refactor to Main Overlay (Composable Panels)**
 
-# One-shot prompt (for Claude/Trae/Cursor)
+**Title:** Stream-HUD — Refactor overlay into `apps/overlay` with panel registry + routes
+**Goal:** Replace `apps/checklist-overlay` with a **single overlay app** that can compose multiple **panels** (Checklist, Net HUD, AI Chat) via **URL params** or `hud.config.json`. Keep **panel-only** routes for scenes that want just one widget. Preserve current checklist behavior (WS first, poll fallback).
 
-> **Title:** Stream-HUD — Checklist Overlay (v0.1 first win)
-> **Goal:** Build a browser overlay (React + TS + Tailwind) that shows a live progress checklist for OBS. It must work **without any backend** (polling a local JSON file), but also support a **WebSocket** feed if available. Ship fast, simple, reliable.
->
-> **Tech/stack**
->
-> * Vite + React + TypeScript
-> * TailwindCSS
-> * Optional: framer-motion for subtle animations
->
-> **Functional requirements**
->
-> 1. **Checklist UI**
->
->    * Render list of items with `text` and `done`.
->    * Show **progress %** and “X / N tasks” counter.
->    * Optional groups: if items have `group`, show a small label.
->    * Subtle animations on toggle (fade/slide).
-> 2. **Data sources (fallback chain)**
->
->    * Try **WebSocket** first: `VITE_CHECKLIST_WS_URL` or `ws://localhost:7006/checklist`.
->    * If WS not connected in 1s, **poll** `/configs/tasks.json` every **2000ms**.
->    * Always keep last good data; show a tiny status chip: “WS” or “POLL”.
-> 3. **Config via URL params**
->
->    * `?scale=1.0` (0.5–2.0), `?title=Project%20X`, `?theme=dark|light`, `?showProgress=1|0`, `?compact=1|0`.
->    * Respect Tailwind dark mode on `theme=dark`.
-> 4. **Keyboard shortcuts (local only)**
->
->    * **R** = reload data (force poll once).
->    * **T** = toggle the first incomplete item (for demo on stream).
-> 5. **Types**
->
->    ```ts
->    export type ChecklistItem = { id: string; text: string; done: boolean; group?: string };
->    export type ChecklistPayload = { items: ChecklistItem[]; ts: number; source: 'ws'|'poll' };
->    ```
-> 6. **Quality**
->
->    * No runtime errors.
->    * Overlay scales cleanly with `scale` param (use CSS transform origin top-left).
->    * Keep bundle light; no heavy deps beyond listed.
->
-> **Files to create (relative to project root)**
->
-> ```
-> apps/checklist-overlay/
->   index.html
->   vite.config.ts
->   tailwind.config.ts
->   postcss.config.cjs
->   tsconfig.json
->   public/
->     favicon.svg
->   src/
->     main.tsx
->     App.tsx
->     panels/Checklist.tsx
->     lib/format.ts        # bytes/percent helpers if needed
->     lib/params.ts        # URL param helpers
->     lib/ws.ts            # WS connect with timeout; auto-reconnect
->     styles.css           # Tailwind base
-> configs/
->   tasks.json             # sample data; overlay will poll this
-> services/checklist-ws/
->   src/server.ts          # tiny Node WS server; reads tasks.json and broadcasts
->   tsconfig.json
->   package.json
-> ```
->
-> **Sample `configs/tasks.json`**
->
-> ```json
-> {
->   "items": [
->     { "id": "1", "text": "Scaffold overlay", "done": true },
->     { "id": "2", "text": "Render checklist items", "done": true },
->     { "id": "3", "text": "Progress % + counter", "done": false },
->     { "id": "4", "text": "Poll tasks.json fallback", "done": false },
->     { "id": "5", "text": "OBS Browser Source test", "done": false }
->   ],
->   "ts": 1736567000
-> }
-> ```
->
-> **WS protocol**
->
-> * Server URL default: `ws://localhost:7006/checklist`
-> * Message payload (broadcasted when file changes or every 2s):
->
->   ```json
->   { "items":[...], "ts":1736567999, "source":"ws" }
->   ```
->
-> **Minimal WS server (`services/checklist-ws/src/server.ts`)**
->
-> * Node + ws.
-> * Reads `../configs/tasks.json` on boot and on FS change.
-> * Broadcasts every 2s OR on change.
-> * No auth, local use only.
->
-> **UI behavior**
->
-> * Card style with rounded corners, border, slight blur (`backdrop-blur`).
-> * Progress ring or bar (choose bar for simplicity).
-> * If `compact=1`, hide header and use smaller spacing.
-> * If `showProgress=0`, show only the list.
->
-> **Dev scripts**
->
-> * `pnpm --filter checklist-overlay dev` → Vite dev server (port 5173).
-> * `pnpm --filter checklist-ws dev` → WS on port **7006**.
->
-> **Acceptance criteria**
->
-> * Opening `http://localhost:5173/?scale=1.1&theme=dark&title=Stream%20Checklist` renders the list and progress.
-> * If WS up, status chip = “WS”; else “POLL”.
-> * Editing `configs/tasks.json` updates the overlay within 2s.
-> * Add to OBS as Browser Source → it fits + scales.
->
-> **Deliverables**
->
-> * All files above with working code.
-> * Clear README with setup and OBS instructions.
-> * No external network calls.
->
-> **Style**
->
-> * Clean, readable, small components.
-> * No over-engineering; this is v0.1 “first win”.
-> * Comment the tricky parts (WS fallback, scaling).
->
-> **Now generate the project with the exact structure and working code.**
+## Context (current repo)
 
----
+* Monorepo with:
 
-# Project structure (only for the checklist feature)
+  * `apps/checklist-overlay` (React/Vite overlay)
+  * `apps/hud-controller` (Electron tray / shortcuts)
+  * `services/checklist-ws` (WS for checklist)
+  * `configs/tasks.json` (source of truth)
+* We’re adding **stats-bridge** later, but stub Net HUD WS now: `ws://localhost:7007/net`.
+
+## Requirements
+
+### A) New app & structure
+
+Create **apps/overlay** and move/port the overlay code there.
 
 ```
-stream-hud/
-├─ apps/
-│  └─ checklist-overlay/
-│     ├─ index.html
-│     ├─ vite.config.ts
-│     ├─ tailwind.config.ts
-│     ├─ postcss.config.cjs
-│     ├─ tsconfig.json
-│     ├─ public/
-│     │  └─ favicon.svg
-│     └─ src/
-│        ├─ main.tsx
-│        ├─ App.tsx
-│        ├─ styles.css
-│        ├─ panels/
-│        │  └─ Checklist.tsx
-│        └─ lib/
-│           ├─ params.ts
-│           ├─ ws.ts
-│           └─ format.ts
-├─ services/
-│  └─ checklist-ws/
-│     ├─ src/
-│     │  └─ server.ts        # tiny WS that streams configs/tasks.json
-│     ├─ tsconfig.json
-│     └─ package.json
-├─ configs/
-│  └─ tasks.json             # single source of truth for checklist
-├─ package.json              # workspaces + scripts (pnpm)
-├─ pnpm-workspace.yaml
-├─ tsconfig.base.json
-└─ README.md
+apps/overlay/
+  index.html
+  package.json
+  vite.config.ts
+  tailwind.config.ts
+  postcss.config.cjs
+  tsconfig.json
+  src/
+    main.tsx
+    App.tsx
+    styles.css
+    core/
+      types.ts              # Panel types & overlay config
+      PanelRegistry.ts      # id -> component map
+      Layout.tsx            # row/column/grid/stack renderer
+      config.ts             # merge URL params + hud.config.json + defaults
+    routes/
+      OverlayMain.tsx       # multi-panel overlay
+      OverlayChecklist.tsx  # panel-only
+      OverlayNet.tsx        # panel-only
+      OverlayAI.tsx         # panel-only (can be stubbed)
+    panels/
+      Checklist.tsx         # port from old app (keep WS→poll)
+      NetHud.tsx            # consume WS payload (can mock if service not running)
+      AIChat.tsx            # consume WS payload (stub ok)
+    lib/
+      ws.ts                 # robust WS client with backoff
+      params.ts             # URL param parsing helpers
+      format.ts             # bytes/bps formatting
 ```
 
-**Notes**
+Keep `apps/checklist-overlay` temporarily for reference; mark it **deprecated** or delete after parity is verified.
 
-* This is intentionally scoped to **checklist only** so you can ship v0.1 fast.
-* The overlay tries WS first (`ws://localhost:7006/checklist`) and falls back to polling `configs/tasks.json`.
-* You can later move this under `apps/overlay` and plug in Net HUD/AI panels, but this keeps the first win focused.
+### B) Panel contract (TypeScript)
 
-If you want, I can follow up with ready-to-paste **sample code** for `server.ts`, `ws.ts`, and `Checklist.tsx` using that structure.
+```ts
+// core/types.ts
+export type PanelId = 'checklist' | 'net' | 'ai';
+export type PanelSize = 'sm' | 'md' | 'lg';
+
+export type PanelConfig = {
+  id: PanelId;
+  enabled: boolean;
+  size?: PanelSize;              // layout hint
+  props?: Record<string, any>;   // per-panel options (bitrate, persona, etc.)
+};
+
+export type OverlayConfig = {
+  layout: 'row' | 'column' | 'grid2' | 'stack';
+  gap?: number;                  // px
+  scale?: number;                // 0.5–2.0
+  theme?: 'dark' | 'light';
+  panels: PanelConfig[];         // render order = array order
+};
+
+// every panel receives merged config + its own props
+export type PanelProps = {
+  size?: PanelSize;
+  props?: Record<string, any>;
+};
+```
+
+```ts
+// core/PanelRegistry.ts
+import Checklist from '../panels/Checklist';
+import NetHud from '../panels/NetHud';
+import AIChat from '../panels/AIChat';
+
+export const PANEL_REGISTRY = {
+  checklist: Checklist,
+  net: NetHud,
+  ai: AIChat,
+} as const;
+```
+
+### C) Routes
+
+Use React Router:
+
+```tsx
+// App.tsx
+<Routes>
+  <Route path="/overlays/main" element={<OverlayMain/>} />
+  <Route path="/overlays/checklist" element={<OverlayChecklist/>} />
+  <Route path="/overlays/net" element={<OverlayNet/>} />
+  <Route path="/overlays/ai" element={<OverlayAI/>} />
+  <Route path="*" element={<OverlayMain/>} /> {/* default */}
+</Routes>
+```
+
+### D) Config sources & precedence
+
+1. **URL params** (scene-level overrides)
+2. `configs/hud.config.json` (project defaults)
+3. Hardcoded sensible defaults
+
+Create `configs/hud.config.json` example:
+
+```json
+{
+  "layout": "row",
+  "gap": 16,
+  "scale": 1.0,
+  "theme": "dark",
+  "panels": [
+    { "id": "checklist", "enabled": true, "size": "md" },
+    { "id": "net",       "enabled": true, "size": "md", "props": { "bitrate": 3500, "threshold": 0.7 } },
+    { "id": "ai",        "enabled": false, "size": "sm", "props": { "persona": "hype", "cadence": 20 } }
+  ]
+}
+```
+
+### E) URL parameter grammar
+
+* **Global:**
+
+  * `layout=row|column|grid2|stack`
+  * `gap=16` (px), `scale=1.1`, `theme=dark|light`
+* **Panels list (order + size):**
+
+  * `panels=checklist(md),net(md),ai(sm)`
+
+    * size optional; defaults to `md`
+* **Per-panel options (read inside panels):**
+
+  * Net: `bitrate=3500&threshold=0.7`
+  * AI: `persona=hype&cadence=20`
+* If `panels` is omitted, use `hud.config.json`.
+
+### F) Layout behavior
+
+* `row` / `column`: flex with `gap`.
+* `grid2`: CSS grid with two columns; map `sm|md|lg` to width hints.
+* `stack`: vertical stack for sidebars.
+* Apply global `scale` via `transform: scale()` with `transform-origin: top left`.
+
+### G) WebSocket contracts
+
+* **Checklist WS (primary):** `ws://localhost:7006/checklist`
+
+  * Fallback: poll `configs/tasks.json` every 2000ms when WS is down.
+  * Keep current checklist item schema and progress calc.
+* **Net WS:** `ws://localhost:7007/net`
+
+  * Payload v1:
+
+    ```json
+    { "v":1,"ts":1736567890,"iface":"en0","upload_bps":2987000,"download_bps":512000,"session_bytes":734003200,"redline":false }
+    ```
+* **AI WS:** `ws://localhost:7008/ai` (can be stubbed for now).
+
+Implement a shared `connectWS(url, onMsg, onStatus)` with exponential backoff + jitter.
+
+### H) Panel ports (minimal)
+
+* **Checklist.tsx**: port existing UI; show small chip `WS`/`POLL`.
+* **NetHud.tsx**: render Upload/Download/Session; redline banner when alert=true (read `bitrate`,`threshold` from props/URL). If WS down, show “Disconnected”.
+* **AIChat.tsx**: simple feed list; if WS down, show “Waiting for AI messages…”.
+
+### I) Vite env defaults
+
+Expose WS URLs via Vite env with sane defaults:
+
+```
+VITE_CHECKLIST_WS_URL=ws://localhost:7006/checklist
+VITE_NET_WS_URL=ws://localhost:7007/net
+VITE_AI_WS_URL=ws://localhost:7008/ai
+```
+
+### J) Migration & cleanup
+
+* Update root `pnpm-workspace.yaml` to include `apps/overlay`.
+* Add scripts:
+
+  ```json
+  { "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:overlay": "pnpm --filter overlay dev",
+    "build:overlay": "pnpm --filter overlay build"
+  }}
+  ```
+* Update README with new routes and param grammar.
+* Keep `apps/checklist-overlay` until parity, then remove or archive.
+
+### K) Acceptance criteria
+
+* `/overlays/main` renders **multiple panels** per `panels=` or `hud.config.json`.
+* `/overlays/checklist`, `/overlays/net`, `/overlays/ai` render **panel-only** UIs (no chrome).
+* Changing `panels` order/size in URL reorders/resizes immediately.
+* Checklist still **WS first** then **poll fallback** and shows a tiny status chip.
+* Net HUD reads WS and updates at \~1 Hz; redline triggers per threshold.
+* Global `scale` and `layout` work and fit OBS Browser Source cleanly.
+* No runtime errors; bundle remains lightweight.
+
+### L) Nice-to-have (if quick)
+
+* Tiny per-panel status dot (`UP/DOWN`) in a corner.
+* `?debug=1` overlays a grid & payload values (for dev only).
+
+**Deliverables**
+
+* New `apps/overlay` app with code/files per structure above.
+* Ported Checklist panel + new Net/AI stubs.
+* Updated README documenting routes, params, and how to add the overlay in OBS.
+
+> Now perform the refactor exactly as specified, generating all files and wiring the routes, panel registry, config merge, and WS connectors. Keep code clean, typed, and production-ready.
