@@ -145,7 +145,7 @@ export function Checklist({ config }: PanelProps) {
   const title = typeof config.title === 'string' ? config.title : 'Checklist';
 
   return (
-    <div className="p-4 w-fit max-w-md">
+    <div className="w-fit max-w-md">
       <motion.div
         className="overlay-card p-4 space-y-4"
         initial={{ opacity: 0, scale: 0.95 }}

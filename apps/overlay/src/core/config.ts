@@ -3,12 +3,13 @@ import { parseUrlParams } from '../lib/params';
 
 // Default configuration
 const DEFAULT_CONFIG: OverlayConfig = {
-  layout: 'row',
+  layout: 'column',
   gap: 16,
   scale: 1.0,
   theme: 'dark',
   panels: [
     { id: 'checklist', enabled: true, size: 'md' },
+    { id: 'net', enabled: true, size: 'md' },
   ],
 };
 
@@ -25,8 +26,12 @@ async function loadHudConfig(): Promise<Partial<OverlayConfig>> {
     const response = await fetch('/configs/hud.config.json');
     if (response.ok) {
       const config = await response.json();
-      cachedHudConfig = config;
-      return config;
+      console.log('Raw config from server:', config);
+      // Extract overlay config if it's wrapped in an "overlay" property
+      const overlayConfig = config.overlay || config;
+      console.log('Extracted overlay config:', overlayConfig);
+      cachedHudConfig = overlayConfig;
+      return overlayConfig;
     }
   } catch (error) {
     console.debug('Failed to load hud.config.json:', error);
@@ -41,12 +46,19 @@ export async function getOverlayConfig(): Promise<OverlayConfig> {
   const urlConfig = parseUrlParams();
   const hudConfig = await loadHudConfig();
   
+  console.log('Config merging:');
+  console.log('DEFAULT_CONFIG:', DEFAULT_CONFIG);
+  console.log('hudConfig:', hudConfig);
+  console.log('urlConfig:', urlConfig);
+  
   // Merge configurations
   const merged: OverlayConfig = {
     ...DEFAULT_CONFIG,
     ...hudConfig,
     ...urlConfig,
   };
+  
+  console.log('Merged config:', merged);
   
   // Ensure panels array is valid
   if (!merged.panels || merged.panels.length === 0) {
@@ -55,6 +67,8 @@ export async function getOverlayConfig(): Promise<OverlayConfig> {
   
   // Filter out disabled panels
   merged.panels = merged.panels.filter(panel => panel.enabled);
+  
+  console.log('Final config after filtering:', merged);
   
   return merged;
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getOverlayConfigSync } from '../core/config';
 import { applyTheme, applyScale } from '../lib/params';
-import NetHud from '../panels/NetHud';
+import { NetHud } from '../panels/NetHud';
 
 export default function OverlayNet() {
   const [isVisible, setIsVisible] = useState<boolean>(true);

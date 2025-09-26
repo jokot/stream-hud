@@ -66,9 +66,10 @@
     @apply relative;
   }
 
-  .layout-stack > * {
+  /* Removed absolute positioning that was causing overlap */
+  /* .layout-stack > * {
     @apply absolute top-0 left-0;
-  }
+  } */
 
   /* Panel Size Styles */
   .panel-small {

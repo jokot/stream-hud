@@ -1,19 +1,21 @@
 {
   "overlay": {
-    "layout": "row",
+    "layout": "column",
     "gap": 16,
     "scale": 1.0,
     "theme": "auto",
     "panels": [
       {
         "id": "checklist",
+        "enabled": true,
         "size": "medium",
         "title": "Tasks",
         "showProgress": true,
         "compact": false
       },
       {
-        "id": "nethud",
+        "id": "net",
+        "enabled": true,
         "size": "small",
         "title": "Network",
         "compact": true
@@ -27,9 +29,9 @@
       "enablePolling": true,
       "pollInterval": 2000
     },
-    "nethud": {
-      "url": "ws://localhost:7007/nethud",
-      "fallbackUrl": "/configs/nethud.json",
+    "net": {
+      "url": "ws://localhost:7007/net",
+      "fallbackUrl": "/configs/net.json",
       "enablePolling": true,
       "pollInterval": 1000
     },

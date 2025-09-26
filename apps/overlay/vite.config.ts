@@ -26,7 +26,7 @@ export default defineConfig({
 
         // Serve hud.config.json for overlay configuration
         server.middlewares.use('/configs/hud.config.json', (req, res, next) => {
-          const configPath = resolve(__dirname, '../../configs/hud.config.json');
+          const configPath = resolve(__dirname, '../../hud.config.json');
           try {
             const data = fs.readFileSync(configPath, 'utf8');
             res.setHeader('Content-Type', 'application/json');

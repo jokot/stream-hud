@@ -105,6 +105,7 @@ export default function OverlayMain() {
   }, []);
 
   if (loading) {
+    console.log('OverlayMain: Still loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-500 dark:text-gray-400">Loading overlay...</div>
@@ -113,12 +114,16 @@ export default function OverlayMain() {
   }
 
   if (!config) {
+    console.log('OverlayMain: No config loaded');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-red-500">Failed to load overlay configuration</div>
       </div>
     );
   }
+
+  console.log('OverlayMain: Rendering with config:', config);
+  console.log('OverlayMain: isVisible:', isVisible);
 
   return (
     <div className="min-h-screen bg-transparent">

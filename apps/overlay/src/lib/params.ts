@@ -107,3 +107,16 @@ export function applyScale(scale: number) {
     root.style.transformOrigin = 'top left';
   }
 }
+
+// Net HUD specific parameter parsing
+export interface NetHudParams {
+  bitrate: number;
+  threshold: number;
+}
+
+export function parseNetHudParams(): NetHudParams {
+  return {
+    bitrate: getUrlParamNumber('bitrate', 3500) || 3500,
+    threshold: getUrlParamNumber('threshold', 0.7) || 0.7
+  };
+}

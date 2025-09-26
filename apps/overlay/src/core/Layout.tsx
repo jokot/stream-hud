@@ -41,6 +41,8 @@ function getLayoutClasses(config: OverlayConfig): string {
 function renderPanel(panelConfig: PanelConfig, index: number) {
   const PanelComponent = getPanelComponent(panelConfig.id);
   
+  console.log(`Rendering panel ${index}: ${panelConfig.id}`, panelConfig);
+  
   if (!PanelComponent) {
     console.warn(`Panel component not found for ID: ${panelConfig.id}`);
     return (
@@ -56,6 +58,7 @@ function renderPanel(panelConfig: PanelConfig, index: number) {
     <div
       key={`${panelConfig.id}-${index}`}
       className={`${sizeClasses} flex-shrink-0`}
+      style={{ position: 'relative' }}
     >
       <PanelComponent
         config={panelConfig}
@@ -67,6 +70,10 @@ function renderPanel(panelConfig: PanelConfig, index: number) {
 export default function Layout({ config }: LayoutProps) {
   const { scale = 1.0, gap = 16 } = config;
   const layoutClasses = getLayoutClasses(config);
+  
+  console.log('Layout rendering with config:', config);
+  console.log('Panels to render:', config.panels);
+  console.log('Layout classes applied:', layoutClasses);
   
   // Apply custom gap if not using standard Tailwind values
   const customStyle: React.CSSProperties = {};

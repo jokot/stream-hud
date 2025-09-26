@@ -90,7 +90,35 @@
       "done": true,
       "completed": true,
       "order": 12
+    },
+    {
+      "id": "task_1758816113625_wrsd5s98m",
+      "text": "move network section to under the checklist",
+      "done": false,
+      "completed": false,
+      "order": 13
+    },
+    {
+      "id": "task_1758816125061_ver0sxc06",
+      "text": "Change checklist theme to match the network theme",
+      "done": false,
+      "completed": false,
+      "order": 14
+    },
+    {
+      "id": "task_1758816154940_hlxkw9tua",
+      "text": "remove rounded from the overlay style",
+      "done": false,
+      "completed": false,
+      "order": 15
+    },
+    {
+      "id": "task_1758816558581_3mhwhxo9d",
+      "text": "handle how the network session start or stop",
+      "done": false,
+      "completed": false,
+      "order": 16
     }
   ],
-  "ts": 1758646923
+  "ts": 1758816600
 }

@@ -3,7 +3,7 @@ import { PanelId, PanelProps } from './types';
 
 // Import panel components (will be created later)
 import Checklist from '../panels/Checklist';
-import NetHud from '../panels/NetHud';
+import { NetHud } from '../panels/NetHud';
 import AIChat from '../panels/AIChat';
 
 // Panel component type
